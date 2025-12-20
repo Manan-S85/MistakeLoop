@@ -389,17 +389,36 @@ export default function HomePage({ onLogin }) {
         backdropFilter: 'blur(20px)',
         borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
       }}>
-        <div style={{
+        <div 
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          style={{
           fontSize: '28px',
           fontWeight: '800',
           color: '#ffffff',
-          letterSpacing: '-0.5px'
-        }}>
+          letterSpacing: '-0.5px',
+          cursor: 'pointer',
+          transition: 'opacity 0.2s ease'
+        }}
+        onMouseOver={(e) => e.target.style.opacity = '0.8'}
+        onMouseOut={(e) => e.target.style.opacity = '1'}
+        >
           MistakeLoop
         </div>
         
         <div style={{ display: 'flex', gap: '48px', alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: '40px' }}>
+            <span 
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              style={{
+              color: 'rgba(255, 255, 255, 0.7)',
+              fontSize: '16px',
+              cursor: 'pointer',
+              transition: 'color 0.2s ease',
+              fontWeight: '500'
+            }}
+            onMouseOver={(e) => e.target.style.color = '#ffffff'}
+            onMouseOut={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.7)'}
+            >Home</span>
             <span 
               onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}
               style={{
@@ -609,6 +628,296 @@ export default function HomePage({ onLogin }) {
                 <span>{item.step}</span>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Why MistakeLoop is Different */}
+      <section style={{
+        padding: '120px 64px',
+        position: 'relative',
+        zIndex: 5,
+        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
+      }}>
+        <div style={{
+          maxWidth: '1400px',
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '80px',
+          alignItems: 'center'
+        }}>
+          <div>
+            <div style={{
+              display: 'inline-block',
+              padding: '8px 16px',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              borderRadius: '20px',
+              fontSize: '12px',
+              fontWeight: '600',
+              color: '#ffffff',
+              textTransform: 'uppercase',
+              letterSpacing: '1px',
+              marginBottom: '24px'
+            }}>
+              What Makes Us Different
+            </div>
+            
+            <h2 style={{
+              fontSize: 'clamp(28px, 4vw, 48px)',
+              fontWeight: '800',
+              color: '#ffffff',
+              marginBottom: '32px',
+              letterSpacing: '-1px',
+              lineHeight: '1.2'
+            }}>
+              Unlike Other Platforms, We <span style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>Actually Talk With You</span>
+            </h2>
+            
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '24px'
+            }}>
+              <div style={{
+                padding: '24px',
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                borderRadius: '16px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '12px'
+                }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>💬</div>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    color: '#ffffff',
+                    margin: 0
+                  }}>Conversational AI Analysis</h3>
+                </div>
+                <p style={{
+                  fontSize: '14px',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  lineHeight: '1.6',
+                  margin: 0
+                }}>
+                  Our advanced LLM doesn't just analyze text - it engages in real conversations with you, understanding context, emotions, and nuanced details other platforms miss.
+                </p>
+              </div>
+              
+              <div style={{
+                padding: '24px',
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                borderRadius: '16px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '12px'
+                }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>🎯</div>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    color: '#ffffff',
+                    margin: 0
+                  }}>Personal Feedback Coach</h3>
+                </div>
+                <p style={{
+                  fontSize: '14px',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  lineHeight: '1.6',
+                  margin: 0
+                }}>
+                  Instead of generic reports, you get a personalized AI coach that asks follow-up questions, clarifies your experiences, and provides tailored improvement strategies.
+                </p>
+              </div>
+              
+              <div style={{
+                padding: '24px',
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
+                borderRadius: '16px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)'
+              }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '12px'
+                }}>
+                  <div style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>🔄</div>
+                  <h3 style={{
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    color: '#ffffff',
+                    margin: 0
+                  }}>Continuous Learning Loop</h3>
+                </div>
+                <p style={{
+                  fontSize: '14px',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  lineHeight: '1.6',
+                  margin: 0
+                }}>
+                  The AI remembers your journey, building on previous conversations to create an evolving strategy that adapts as you grow and improve.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div style={{
+            position: 'relative',
+            height: '500px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <div style={{
+              width: '400px',
+              height: '450px',
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)',
+              borderRadius: '20px',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              backdropFilter: 'blur(20px)',
+              padding: '32px',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: '20px',
+                left: '20px',
+                right: '20px',
+                height: '40px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                color: 'rgba(255, 255, 255, 0.8)',
+                fontWeight: '600'
+              }}>
+                💬 MistakeLoop AI Coach
+              </div>
+              
+              <div style={{
+                marginTop: '60px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                height: 'calc(100% - 80px)',
+                overflowY: 'hidden'
+              }}>
+                <div style={{
+                  alignSelf: 'flex-start',
+                  maxWidth: '80%',
+                  padding: '12px 16px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  borderRadius: '12px 12px 12px 4px',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  lineHeight: '1.4'
+                }}>
+                  Hi! I noticed you mentioned feeling nervous during technical questions. Can you tell me more about what specifically made you feel that way?
+                </div>
+                
+                <div style={{
+                  alignSelf: 'flex-end',
+                  maxWidth: '80%',
+                  padding: '12px 16px',
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  borderRadius: '12px 12px 4px 12px',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  lineHeight: '1.4'
+                }}>
+                  I think I struggled with explaining my thought process while coding...
+                </div>
+                
+                <div style={{
+                  alignSelf: 'flex-start',
+                  maxWidth: '80%',
+                  padding: '12px 16px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  borderRadius: '12px 12px 12px 4px',
+                  color: '#ffffff',
+                  fontSize: '13px',
+                  lineHeight: '1.4'
+                }}>
+                  That's a common challenge! Let's work on strategies to verbalize your coding process. Have you tried the "rubber duck" method before?
+                </div>
+                
+                <div style={{
+                  position: 'absolute',
+                  bottom: '20px',
+                  left: '20px',
+                  right: '20px',
+                  height: '40px',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  paddingLeft: '16px',
+                  fontSize: '13px',
+                  color: 'rgba(255, 255, 255, 0.6)'
+                }}>
+                  Type your response...
+                  <div style={{
+                    marginLeft: 'auto',
+                    marginRight: '16px',
+                    width: '8px',
+                    height: '8px',
+                    background: '#667eea',
+                    borderRadius: '50%',
+                    animation: 'pulse 2s ease-in-out infinite'
+                  }}></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -903,6 +1212,17 @@ export default function HomePage({ onLogin }) {
           to {
             opacity: 1;
             transform: translateY(0);
+          }
+        }
+        
+        @keyframes pulse {
+          0%, 100% {
+            opacity: 0.5;
+            transform: scale(1);
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1.2);
           }
         }
       `}</style>
