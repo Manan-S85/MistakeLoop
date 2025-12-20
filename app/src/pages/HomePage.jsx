@@ -244,7 +244,7 @@ export default function HomePage({ onLogin }) {
                 padding: '16px 24px',
                 borderRadius: '12px',
                 border: 'none',
-                background: loading ? 'rgba(100, 100, 100, 0.5)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: loading ? 'rgba(100, 100, 100, 0.5)' : 'linear-gradient(135deg, #4169E1 0%, #87CEEB 100%)',
                 color: '#ffffff',
                 fontSize: '16px',
                 fontWeight: '600',
@@ -253,18 +253,18 @@ export default function HomePage({ onLogin }) {
                 fontFamily: 'inherit',
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
-                boxShadow: loading ? 'none' : '0 4px 14px 0 rgba(102, 126, 234, 0.39)'
+                boxShadow: loading ? 'none' : '0 4px 14px 0 rgba(65, 105, 225, 0.39)'
               }}
               onMouseOver={(e) => {
                 if (!loading) {
                   e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = '0 8px 25px 0 rgba(102, 126, 234, 0.5)';
+                  e.target.style.boxShadow = '0 8px 25px 0 rgba(65, 105, 225, 0.5)';
                 }
               }}
               onMouseOut={(e) => {
                 if (!loading) {
                   e.target.style.transform = 'translateY(0px)';
-                  e.target.style.boxShadow = '0 4px 14px 0 rgba(102, 126, 234, 0.39)';
+                  e.target.style.boxShadow = '0 4px 14px 0 rgba(65, 105, 225, 0.39)';
                 }
               }}
             >
@@ -311,8 +311,7 @@ export default function HomePage({ onLogin }) {
       margin: 0,
       padding: 0,
       fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-      position: 'relative',
-      overflow: 'hidden'
+      position: 'relative'
     }}>
       {/* Animated Background Elements */}
       <div style={{
@@ -390,7 +389,13 @@ export default function HomePage({ onLogin }) {
         borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
       }}>
         <div 
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          onClick={() => {
+            // Try multiple methods to ensure we get to the top
+            document.documentElement.scrollTop = 0;
+            document.body.scrollTop = 0;
+            window.scrollTo(0, 0);
+            window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+          }}
           style={{
           fontSize: '28px',
           fontWeight: '800',
@@ -408,7 +413,13 @@ export default function HomePage({ onLogin }) {
         <div style={{ display: 'flex', gap: '48px', alignItems: 'center' }}>
           <div style={{ display: 'flex', gap: '40px' }}>
             <span 
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              onClick={() => {
+                // Try multiple methods to ensure we get to the top
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
+                window.scrollTo(0, 0);
+                window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+              }}
               style={{
               color: 'rgba(255, 255, 255, 0.7)',
               fontSize: '16px',
@@ -475,7 +486,7 @@ export default function HomePage({ onLogin }) {
               padding: '12px 28px',
               borderRadius: '50px',
               border: 'none',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: 'linear-gradient(135deg, #4169E1 0%, #87CEEB 100%)',
               color: '#ffffff',
               cursor: 'pointer',
               fontSize: '14px',
@@ -483,15 +494,15 @@ export default function HomePage({ onLogin }) {
               transition: 'all 0.2s ease',
               textTransform: 'uppercase',
               letterSpacing: '0.5px',
-              boxShadow: '0 4px 14px 0 rgba(102, 126, 234, 0.39)'
+              boxShadow: '0 4px 14px 0 rgba(65, 105, 225, 0.39)'
             }}
             onMouseOver={(e) => {
               e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 8px 25px 0 rgba(102, 126, 234, 0.5)';
+              e.target.style.boxShadow = '0 8px 25px 0 rgba(65, 105, 225, 0.5)';
             }}
             onMouseOut={(e) => {
               e.target.style.transform = 'translateY(0px)';
-              e.target.style.boxShadow = '0 4px 14px 0 rgba(102, 126, 234, 0.39)';
+              e.target.style.boxShadow = '0 4px 14px 0 rgba(65, 105, 225, 0.39)';
             }}
           >
             Get in touch →
@@ -500,7 +511,7 @@ export default function HomePage({ onLogin }) {
       </nav>
 
       {/* Hero Section */}
-      <section style={{
+      <section id="home" style={{
         padding: '120px 64px 80px 64px',
         position: 'relative',
         zIndex: 5,
@@ -555,7 +566,7 @@ export default function HomePage({ onLogin }) {
                 padding: '20px 48px',
                 borderRadius: '50px',
                 border: 'none',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #4169E1 0%, #87CEEB 100%)',
                 color: '#ffffff',
                 cursor: 'pointer',
                 fontSize: '18px',
@@ -563,17 +574,17 @@ export default function HomePage({ onLogin }) {
                 transition: 'all 0.2s ease',
                 textTransform: 'uppercase',
                 letterSpacing: '1px',
-                boxShadow: '0 8px 32px 0 rgba(102, 126, 234, 0.4)',
+                boxShadow: '0 8px 32px 0 rgba(65, 105, 225, 0.4)',
                 position: 'relative',
                 overflow: 'hidden'
               }}
               onMouseOver={(e) => {
                 e.target.style.transform = 'translateY(-3px)';
-                e.target.style.boxShadow = '0 12px 48px 0 rgba(102, 126, 234, 0.6)';
+                e.target.style.boxShadow = '0 12px 48px 0 rgba(65, 105, 225, 0.6)';
               }}
               onMouseOut={(e) => {
                 e.target.style.transform = 'translateY(0px)';
-                e.target.style.boxShadow = '0 8px 32px 0 rgba(102, 126, 234, 0.4)';
+                e.target.style.boxShadow = '0 8px 32px 0 rgba(65, 105, 225, 0.4)';
               }}
             >
               Start Your Journey →
@@ -1139,7 +1150,7 @@ export default function HomePage({ onLogin }) {
                 padding: '20px 48px',
                 borderRadius: '50px',
                 border: 'none',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                background: 'linear-gradient(135deg, #4169E1 0%, #87CEEB 100%)',
                 color: '#ffffff',
                 cursor: 'pointer',
                 fontSize: '18px',
@@ -1147,45 +1158,18 @@ export default function HomePage({ onLogin }) {
                 transition: 'all 0.2s ease',
                 textTransform: 'uppercase',
                 letterSpacing: '1px',
-                boxShadow: '0 8px 32px 0 rgba(102, 126, 234, 0.4)'
+                boxShadow: '0 8px 32px 0 rgba(65, 105, 225, 0.4)'
               }}
               onMouseOver={(e) => {
                 e.target.style.transform = 'translateY(-3px)';
-                e.target.style.boxShadow = '0 12px 48px 0 rgba(102, 126, 234, 0.6)';
+                e.target.style.boxShadow = '0 12px 48px 0 rgba(65, 105, 225, 0.6)';
               }}
               onMouseOut={(e) => {
                 e.target.style.transform = 'translateY(0px)';
-                e.target.style.boxShadow = '0 8px 32px 0 rgba(102, 126, 234, 0.4)';
+                e.target.style.boxShadow = '0 8px 32px 0 rgba(65, 105, 225, 0.4)';
               }}
             >
               Get Started Now →
-            </button>
-            
-            <button
-              style={{
-                padding: '20px 48px',
-                borderRadius: '50px',
-                border: '2px solid rgba(255, 255, 255, 0.2)',
-                background: 'rgba(255, 255, 255, 0.05)',
-                color: '#ffffff',
-                cursor: 'pointer',
-                fontSize: '18px',
-                fontWeight: '600',
-                transition: 'all 0.2s ease',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                backdropFilter: 'blur(20px)'
-              }}
-              onMouseOver={(e) => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-                e.target.style.transform = 'translateY(-3px)';
-              }}
-              onMouseOut={(e) => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.05)';
-                e.target.style.transform = 'translateY(0px)';
-              }}
-            >
-              Watch Demo
             </button>
           </div>
         </div>
@@ -1193,6 +1177,33 @@ export default function HomePage({ onLogin }) {
 
       <style jsx>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.2);
+          border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          border-radius: 10px;
+          transition: all 0.2s ease;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+          box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+        }
+        
+        /* Firefox Scrollbar */
+        * {
+          scrollbar-width: thin;
+          scrollbar-color: #667eea rgba(0, 0, 0, 0.2);
+        }
         
         @keyframes float {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
