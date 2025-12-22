@@ -305,7 +305,6 @@ export default function HomePage({ onLogin }) {
 
   return (
     <div style={{
-      minHeight: '100vh',
       background: 'linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)',
       color: '#ffffff',
       margin: 0,
@@ -466,18 +465,7 @@ export default function HomePage({ onLogin }) {
             onMouseOver={(e) => e.target.style.color = '#ffffff'}
             onMouseOut={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.7)'}
             >About us</span>
-            <span 
-              onClick={() => document.getElementById('case-study').scrollIntoView({ behavior: 'smooth' })}
-              style={{
-              color: 'rgba(255, 255, 255, 0.7)',
-              fontSize: '16px',
-              cursor: 'pointer',
-              transition: 'color 0.2s ease',
-              fontWeight: '500'
-            }}
-            onMouseOver={(e) => e.target.style.color = '#ffffff'}
-            onMouseOut={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.7)'}
-            >Insights</span>
+
           </div>
           
           <button
@@ -512,7 +500,7 @@ export default function HomePage({ onLogin }) {
 
       {/* Hero Section */}
       <section id="home" style={{
-        padding: '120px 64px 80px 64px',
+        padding: '60px 64px 40px 64px',
         position: 'relative',
         zIndex: 5,
         maxWidth: '1400px',
@@ -522,8 +510,7 @@ export default function HomePage({ onLogin }) {
           display: 'grid',
           gridTemplateColumns: '1fr auto',
           gap: '80px',
-          alignItems: 'center',
-          minHeight: '70vh'
+          alignItems: 'center'
         }}>
           <div style={{ maxWidth: '800px' }}>
             <h1 style={{
@@ -645,7 +632,7 @@ export default function HomePage({ onLogin }) {
 
       {/* Why MistakeLoop is Different */}
       <section style={{
-        padding: '120px 64px',
+        padding: '60px 64px',
         position: 'relative',
         zIndex: 5,
         background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%)',
@@ -933,74 +920,11 @@ export default function HomePage({ onLogin }) {
         </div>
       </section>
 
-      {/* Case Study Preview */}
-      <section id="case-study" style={{
-        position: 'relative',
-        zIndex: 5,
-        padding: '0 64px 80px 64px',
-        maxWidth: '1400px',
-        margin: '0 auto'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '24px',
-          padding: '32px 40px',
-          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
-          borderRadius: '20px',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(20px)',
-          transition: 'all 0.3s ease',
-          cursor: 'pointer'
-        }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.transform = 'translateY(-4px)';
-          e.currentTarget.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.3)';
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.transform = 'translateY(0px)';
-          e.currentTarget.style.boxShadow = 'none';
-        }}
-        >
-          <div style={{
-            width: '120px',
-            height: '80px',
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '32px'
-          }}>
-            📱
-          </div>
-          
-          <div>
-            <div style={{
-              fontSize: '12px',
-              color: 'rgba(255, 255, 255, 0.5)',
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
-              fontWeight: '600',
-              marginBottom: '8px'
-            }}>
-              INTERVIEW SUCCESS CASE STUDY
-            </div>
-            <div style={{
-              fontSize: '20px',
-              color: '#ffffff',
-              fontWeight: '600',
-              lineHeight: '1.3'
-            }}>
-              Transforming a junior developer's interview journey into senior role success
-            </div>
-          </div>
-        </div>
-      </section>
+
 
       {/* Features Section */}
       <section id="features" style={{
-        padding: '120px 64px',
+        padding: '60px 64px',
         position: 'relative',
         zIndex: 5,
         background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.01) 100%)',
@@ -1114,7 +1038,7 @@ export default function HomePage({ onLogin }) {
 
       {/* CTA Section */}
       <section id="cta" style={{
-        padding: '120px 64px',
+        padding: '40px 64px 40px 64px',
         textAlign: 'center',
         position: 'relative',
         zIndex: 5
