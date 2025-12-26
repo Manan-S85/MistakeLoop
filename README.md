@@ -4,21 +4,21 @@
 
 MistakeLoop is an AI-powered interview intelligence platform that helps professionals turn their interview setbacks into stepping stones for career growth.
 
-## ✨ Philosophy
+## Philosophy
 
 *"Only mistakes can truly improve a person. Every failure teaches us what success cannot."*
 
-## 🎯 How It Works
+## How It Works
 
 **The MistakeLoop Process:**
-- ❌ **Mistake** - Identify what went wrong
-- 🔍 **Detection** - AI analyzes patterns
-- 💡 **Feedback** - Get personalized insights
-- ⚡ **Action** - Implement improvements
-- 📊 **Review** - Track your progress
-- 🔄 **Repeat if unfixed** - Continue the loop until mastery
+- **Mistake** - Identify what went wrong
+- **Detection** - AI analyzes patterns
+- **Feedback** - Get personalized insights
+- **Action** - Implement improvements
+- **Review** - Track your progress
+- **Repeat if unfixed** - Continue the loop until mastery
 
-## 🚀 Features
+## Features
 
 - **Pattern Recognition**: AI identifies recurring interview mistakes
 - **Progress Tracking**: Monitor improvement over time
@@ -33,7 +33,7 @@ MistakeLoop is an AI-powered interview intelligence platform that helps professi
 - **AI**: OpenRouter API
 - **Styling**: Tailwind CSS
 
-## 🏃‍♂️ Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js (v16 or higher)
@@ -109,7 +109,7 @@ We welcome contributions! Please feel free to submit a Pull Request.
 
 This project is licensed under the MIT License.
 
-## 🌟 Support
+## Support
 
 If you find MistakeLoop helpful, please give it a ⭐ on GitHub!
 

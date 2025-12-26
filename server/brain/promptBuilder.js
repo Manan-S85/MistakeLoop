@@ -11,7 +11,7 @@ User Context:
   }
 
   return `
-Hey there! I'm your personal interview coach, and I'm genuinely excited to help you turn this interview experience into your next big win! 🚀
+Hey there! I'm your personal interview coach, and I'm genuinely excited to help you turn this interview experience into your next big win!
 
 I've been helping people like you navigate the ups and downs of job interviews, and let me tell you - every single "failed" interview is actually a goldmine of insights waiting to be discovered.
 
@@ -52,9 +52,9 @@ Here's my honest assessment and personalized roadmap for your success:
 }
 }
 
-Remember: I believe in you! 🌟 Every successful professional has been exactly where you are right now. The difference? They turned their setbacks into comebacks, and that's exactly what we're doing together. 
+Remember: I believe in you! Every successful professional has been exactly where you are right now. The difference? They turned their setbacks into comebacks, and that's exactly what we're doing together. 
 
-Write everything as if you're their personal mentor who genuinely cares about their success. Make it conversational, specific, and filled with hope. Let's make their next interview the breakthrough moment they've been waiting for! 💪
+Write everything as if you're their personal mentor who genuinely cares about their success. Make it conversational, specific, and filled with hope. Let's make their next interview the breakthrough moment they've been waiting for!
 
 IMPORTANT: Talk TO them, not ABOUT them. Use "you", "your", "I want you to", etc. Make every word feel personal and encouraging.`;
 }

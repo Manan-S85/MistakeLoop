@@ -12,7 +12,7 @@ async function sendWeeklyReminders() {
     const issues = await Issue.find({ resolved: false });
     
     if (!issues.length) {
-      console.log("✅ No unresolved issues found.");
+      console.log("No unresolved issues found.");
       return;
     }
 
@@ -30,7 +30,7 @@ async function sendWeeklyReminders() {
       console.log(`[AI REMINDER] ${message}`);
     }
   } catch (error) {
-    console.error("❌ Error in weekly reminder:", error.message);
+    console.error("Error in weekly reminder:", error.message);
   }
 }
 

@@ -16,7 +16,7 @@ dotenv.config({ path: '../.env' });
 
 const app = express();
 
-console.log("🚀 Starting Mistaker Interview Diagnostic Server...");
+console.log("Starting Mistaker Interview Diagnostic Server...");
 
 // Middlewares
 app.use(cors({
@@ -65,9 +65,9 @@ const startServer = async () => {
     await connectDB();
     
     const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`✅ Server running on port ${PORT}`);
+      console.log(`Server running on port ${PORT}`);
       console.log(`📡 Health check: http://localhost:${PORT}`);
-      console.log(`🧠 API endpoint: http://localhost:${PORT}/api/analyze`);
+      console.log(`API endpoint: http://localhost:${PORT}/api/analyze`);
     });
     
     server.on('error', (error) => {

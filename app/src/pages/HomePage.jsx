@@ -1,6 +1,9 @@
 import { useState } from "react";
+import Icons from "../components/Icons.jsx";
+import homeTitleImg from "../assets/home_title.png";
 
 export default function HomePage({ onLogin }) {
+  console.log("Home title image path:", homeTitleImg);
   const [showLogin, setShowLogin] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -971,7 +974,14 @@ export default function HomePage({ onLogin }) {
         onMouseOver={(e) => e.target.style.opacity = '0.8'}
         onMouseOut={(e) => e.target.style.opacity = '1'}
         >
-          MistakeLoop
+          <img 
+            src={homeTitleImg} 
+            alt="MistakeLoop" 
+            style={{
+              height: '32px',
+              objectFit: 'contain'
+            }}
+          />
         </div>
         
         <div style={{ display: 'flex', gap: '48px', alignItems: 'center' }}>
@@ -1152,13 +1162,26 @@ export default function HomePage({ onLogin }) {
             opacity: '0.8'
           }}>
             {[
-              { step: 'Mistake', icon: '❌' },
-              { step: 'Detection', icon: '🔍' },
-              { step: 'Feedback', icon: '💡' },
-              { step: 'Action', icon: '⚡' },
-              { step: 'Review', icon: '📊' },
-              { step: 'Repeat if unfixed', icon: '🔄' }
-            ].map((item, index) => (
+              { step: 'Mistake', iconType: 'error' },
+              { step: 'Detection', iconType: 'search' },
+              { step: 'Feedback', iconType: 'lightbulb' },
+              { step: 'Action', iconType: 'sparkles' },
+              { step: 'Review', iconType: 'chart' },
+              { step: 'Repeat if unfixed', iconType: 'cycle' }
+            ].map((item, index) => {
+              const getIcon = (type) => {
+                switch(type) {
+                  case 'error': return <Icons.X size={16} />;
+                  case 'search': return <Icons.Search size={16} />;
+                  case 'lightbulb': return <Icons.Lightbulb size={16} />;
+                  case 'sparkles': return <Icons.Sparkles size={16} />;
+                  case 'chart': return <Icons.Chart size={16} />;
+                  case 'cycle': return <span style={{fontSize: '16px', fontWeight: 'bold'}}>↻</span>;
+                  default: return null;
+                }
+              };
+              
+              return (
               <div
                 key={item.step}
                 style={{
@@ -1187,10 +1210,11 @@ export default function HomePage({ onLogin }) {
                   e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
                 }}
               >
-                <span style={{ fontSize: '18px' }}>{item.icon}</span>
+                <span style={{ fontSize: '18px' }}>{getIcon(item.iconType)}</span>
                 <span>{item.step}</span>
               </div>
-            ))}
+            );
+          })}
           </div>
         </div>
       </section>
@@ -1311,7 +1335,7 @@ export default function HomePage({ onLogin }) {
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: '18px'
-                  }}>🎯</div>
+                  }}><Icons.Target size={24} /></div>
                   <h3 style={{
                     fontSize: '18px',
                     fontWeight: '700',
@@ -1532,19 +1556,19 @@ export default function HomePage({ onLogin }) {
         }}>
           {[
             {
-              icon: '🎯',
+              iconComponent: <Icons.Target size={32} />,
               title: 'Track Interview Patterns',
               description: 'Log your interview experiences, questions, and outcomes to identify recurring challenges and improvement areas.',
               gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
             },
             {
-              icon: '🧠',
+              iconComponent: <Icons.Brain size={32} />,
               title: 'AI-Powered Analysis',
               description: 'Our intelligent system analyzes your patterns, provides personalized feedback, and suggests targeted improvements.',
               gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
             },
             {
-              icon: '📈',
+              iconComponent: <Icons.Chart size={32} />,
               title: 'Measure Your Growth',
               description: 'Track your progress over time with detailed analytics and celebrate your interview success milestones.',
               gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
@@ -1577,7 +1601,7 @@ export default function HomePage({ onLogin }) {
                 marginBottom: '24px',
                 display: 'inline-block'
               }}>
-                {feature.icon}
+                {feature.iconComponent}
               </div>
               <h3 style={{
                 fontSize: '24px',

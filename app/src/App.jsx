@@ -26,9 +26,11 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    setUser(null);
+    // Clear localStorage first
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    // Then update state
+    setUser(null);
   };
 
   if (loading) {

@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from "react";
+import Icons from "../components/Icons.jsx";
+import homeTitleImg from "../assets/home_title.png";
 
 export default function InterviewDiagnostic({ user, onLogout }) {
   const [messages, setMessages] = useState([]);
@@ -32,7 +34,7 @@ export default function InterviewDiagnostic({ user, onLogout }) {
         {
           id: 1,
           type: "ai",
-          content: `👋 Welcome back, ${user?.name || 'User'}! I'm your AI Interview Coach, and I'm here to help you transform your interview experiences into your next success story. I know interviews can feel overwhelming, but remember - every experience is a stepping stone toward your goals.\n\nLet's start by getting to know you better. What's your current situation? Are you a student preparing for placements, someone looking to switch careers, or perhaps a recent graduate navigating the job market? I want to understand your journey so I can provide the most relevant guidance.`,
+          content: `Welcome back, ${user?.name || 'User'}! I'm your AI Interview Coach, and I'm here to help you transform your interview experiences into your next success story. I know interviews can feel overwhelming, but remember - every experience is a stepping stone toward your goals.\n\nLet's start by getting to know you better. What's your current situation? Are you a student preparing for placements, someone looking to switch careers, or perhaps a recent graduate navigating the job market? I want to understand your journey so I can provide the most relevant guidance.`,
           timestamp: new Date()
         }
       ]);
@@ -185,6 +187,44 @@ export default function InterviewDiagnostic({ user, onLogout }) {
           }, 1000);
           break;
 
+        case "completed":
+          // Handle post-analysis conversation
+          setLoading(true);
+          
+          setTimeout(() => {
+            let contextualResponse = "";
+            
+            // Check if user is asking about higher studies vs job
+            if (inputValue.toLowerCase().includes('higher studies') || inputValue.toLowerCase().includes('masters') || inputValue.toLowerCase().includes('phd')) {
+              contextualResponse = `That's a great question about higher studies vs job opportunities! Based on our previous conversation about your interview experiences, I can definitely help you think through this decision.\n\nHere are some key factors to consider:\n\n**For Higher Studies:**\n• **Specialization**: Advanced degrees allow deeper expertise in your field\n• **Research opportunities**: If you're interested in innovation and cutting-edge work\n• **Long-term career growth**: Some roles require advanced degrees\n• **Network building**: Academic connections can be valuable\n\n**For Job First:**\n• **Real-world experience**: Practical skills and industry exposure\n• **Financial independence**: Start earning and gaining work experience\n• **Immediate impact**: Apply your current skills right away\n• **Learning while working**: Many companies offer continuous learning opportunities\n\n**Hybrid approaches to consider:**\n• Part-time masters while working\n• Company-sponsored education programs\n• Industry certifications alongside work experience\n\nWhat specific field are you considering for higher studies? And what are your main concerns about choosing between the two paths?`;
+            } else if (inputValue.toLowerCase().includes('another interview') || inputValue.toLowerCase().includes('new interview')) {
+              contextualResponse = `Absolutely! I'd love to help you with another interview experience. Every interview is a learning opportunity, and analyzing multiple experiences helps us identify patterns and track your growth.\n\nTo provide you with the most relevant guidance, let's start fresh:\n\n**What's the context for this new interview experience?**\n• Was this a recent interview or one you're preparing for?\n• Same type of role/company as before, or something different?\n• How did you feel going into this one compared to your previous interviews?\n\nI'll use insights from our previous analysis to give you even more personalized advice this time around. Tell me everything about this interview experience!`;
+              
+              // Reset context for new interview analysis
+              setUserContext(prev => ({
+                ...prev,
+                interviewReflection: "",
+                pastMistakes: prev.pastMistakes // Keep past patterns for better analysis
+              }));
+              setConversationState("reflection");
+            } else {
+              // General follow-up conversation
+              contextualResponse = `I'm here to help with any follow-up questions about your interview analysis or career guidance! \n\nYou could ask me about:\n• **Specific advice** from the analysis you'd like me to elaborate on\n• **Higher education vs job decisions** and career planning\n• **Another interview experience** you'd like to discuss\n• **Preparation strategies** for upcoming interviews\n• **Industry-specific guidance** for your field\n\nWhat would you like to explore further?`;
+            }
+            
+            const aiMessage = {
+              id: Date.now() + 1,
+              type: "ai",
+              content: contextualResponse,
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, aiMessage]);
+            setLoading(false);
+          }, 1200);
+          
+          return; // Exit early to prevent duplicate message
+          break;
+
         default:
           aiResponse = "I'm not sure how to respond to that. Could you please try again?";
       }
@@ -236,10 +276,10 @@ export default function InterviewDiagnostic({ user, onLogout }) {
     try {
       // Add analyzing steps with delays
       const analyzingSteps = [
-        "🔍 Analyzing your interview experience...",
-        "🧠 Processing your responses and identifying patterns...", 
-        "📊 Generating personalized insights and recommendations...",
-        "✨ Finalizing your custom action plan..."
+        "Analyzing your interview experience...",
+        "Processing your responses and identifying patterns...", 
+        "Generating personalized insights and recommendations...",
+        "Finalizing your custom action plan..."
       ];
       
       for (let i = 0; i < analyzingSteps.length; i++) {
@@ -314,7 +354,7 @@ export default function InterviewDiagnostic({ user, onLogout }) {
   };
 
   const formatAnalysisResponse = (analysis) => {
-    let response = "🎯 **Interview Analysis Complete**\n\n";
+    let response = "**Interview Analysis Complete**\n\n";
     
     if (analysis.category) {
       response += `**Primary Focus Area:** ${analysis.category}\n\n`;
@@ -341,7 +381,7 @@ export default function InterviewDiagnostic({ user, onLogout }) {
       });
     }
 
-    response += "\n---\n\n🌟 **Remember:** Every interview experience, whether it feels successful or challenging, is building your skills and resilience. You're taking the right steps by reflecting and seeking feedback. Keep going - your breakthrough is closer than you think!\n\nWould you like to discuss any specific part of this analysis further, or start a new interview reflection?";
+    response += "\n---\n\n**Remember:** Every interview experience, whether it feels successful or challenging, is building your skills and resilience. You're taking the right steps by reflecting and seeking feedback. Keep going - your breakthrough is closer than you think!\n\nWould you like to discuss any specific part of this analysis further, or start a new interview reflection?";
 
     return response;
   };
@@ -366,7 +406,7 @@ export default function InterviewDiagnostic({ user, onLogout }) {
     setMessages([{
       id: 1,
       type: "ai",
-      content: `👋 Welcome back! I'm ready to help you with another interview reflection. Let's start fresh - what's your current situation? Are you a student, employed, or actively job hunting?`,
+      content: `Welcome back! I'm ready to help you with another interview reflection. Let's start fresh - what's your current situation? Are you a student, employed, or actively job hunting?`,
       timestamp: new Date()
     }]);
     setUserContext({
@@ -448,20 +488,20 @@ export default function InterviewDiagnostic({ user, onLogout }) {
               width: '40px',
               height: '40px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #4169E1 0%, #87CEEB 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '20px'
-            }}>🤖</div>
+              overflow: 'hidden'
+            }}><img src="/logo.png" alt="AI" style={{width: '40px', height: '40px', objectFit: 'cover'}} /></div>
             <div>
-              <h1 style={{
-                fontSize: '20px',
-                fontWeight: '700',
-                color: '#ffffff',
-                margin: 0,
-                letterSpacing: '-0.5px'
-              }}>MistakeLoop AI Coach</h1>
+              <img 
+                src={homeTitleImg} 
+                alt="MistakeLoop AI Coach" 
+                style={{
+                  height: '32px',
+                  objectFit: 'contain'
+                }}
+              />
               <p style={{
                 color: 'rgba(255, 255, 255, 0.6)',
                 fontSize: '14px',
@@ -571,16 +611,13 @@ export default function InterviewDiagnostic({ user, onLogout }) {
                   width: '40px',
                   height: '40px',
                   borderRadius: '50%',
-                  background: message.type === 'ai' 
-                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
-                    : 'linear-gradient(135deg, #4169E1 0%, #87CEEB 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '18px',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  overflow: 'hidden'
                 }}>
-                  {message.type === 'ai' ? '🤖' : '👤'}
+                  {message.type === 'ai' ? <img src="/logo.png" alt="AI" style={{width: '40px', height: '40px', objectFit: 'cover'}} /> : <Icons.User size={18} />}
                 </div>
 
                 {/* Message Content */}
@@ -630,12 +667,12 @@ export default function InterviewDiagnostic({ user, onLogout }) {
                   width: '40px',
                   height: '40px',
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #4169E1 0%, #87CEEB 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '18px'
-                }}>🤖</div>
+                  fontSize: '18px',
+                  overflow: 'hidden'
+                }}><img src="/logo.png" alt="AI" style={{width: '40px', height: '40px', objectFit: 'cover'}} /></div>
                 <div style={{
                   background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)',
                   border: '1px solid rgba(255, 255, 255, 0.15)',
