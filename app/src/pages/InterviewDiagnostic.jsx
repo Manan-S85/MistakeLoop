@@ -1,85 +1,410 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export default function InterviewDiagnostic({ user, onLogout }) {
-  const [reflection, setReflection] = useState("");
-  const [email, setEmail] = useState(user.email);
-  const [pastMistakes, setPastMistakes] = useState([]);
-  const [newMistake, setNewMistake] = useState("");
-  const [analysis, setAnalysis] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [currentInput, setCurrentInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [conversationState, setConversationState] = useState("greeting");
+  const [userContext, setUserContext] = useState({
+    status: "",
+    skills: "",
+    sentiment: "",
+    interviewReflection: "",
+    pastMistakes: []
+  });
+  const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
 
-  const handleAddMistake = () => {
-    if (newMistake.trim()) {
-      setPastMistakes([...pastMistakes, newMistake.trim()]);
-      setNewMistake("");
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: "smooth",
+        block: "end",
+        inline: "nearest"
+      });
     }
   };
 
-  const handleRemoveMistake = (index) => {
-    setPastMistakes(pastMistakes.filter((_, i) => i !== index));
-  };
-
-  const handleAnalyze = async () => {
-    if (!reflection.trim()) {
-      alert("Please enter your interview reflection");
-      return;
+  useEffect(() => {
+    // Initial greeting message
+    if (messages.length === 0) {
+      setMessages([
+        {
+          id: 1,
+          type: "ai",
+          content: `👋 Welcome back, ${user?.name || 'User'}! I'm your AI Interview Coach, and I'm here to help you transform your interview experiences into your next success story. I know interviews can feel overwhelming, but remember - every experience is a stepping stone toward your goals.\n\nLet's start by getting to know you better. What's your current situation? Are you a student preparing for placements, someone looking to switch careers, or perhaps a recent graduate navigating the job market? I want to understand your journey so I can provide the most relevant guidance.`,
+          timestamp: new Date()
+        }
+      ]);
     }
+  }, [user, messages.length]);
 
+  useEffect(() => {
+    // Only scroll if there are messages and after a brief delay to ensure DOM is updated
+    if (messages.length > 0) {
+      const timer = setTimeout(() => {
+        scrollToBottom();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [messages]);
+
+  const handleSendMessage = async () => {
+    if (!currentInput.trim() || loading) return;
+
+    const userMessage = {
+      id: Date.now(),
+      type: "user",
+      content: currentInput.trim(),
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    const inputValue = currentInput.trim();
+    setCurrentInput("");
     setLoading(true);
+
+    // Process user input based on conversation state
+    let aiResponse = "";
+    let nextState = conversationState;
+
     try {
+      switch (conversationState) {
+        case "greeting":
+          setUserContext(prev => ({ ...prev, status: inputValue }));
+          
+          // Add thinking delay for better UX
+          setLoading(true);
+          setTimeout(() => {
+            aiResponse = `I understand you're ${inputValue.toLowerCase()}. That context really helps me tailor my guidance to your specific situation!\n\nNow, let's dive into the technical side - what specific skills, technologies, or role were you interviewing for? The more specific you can be (like "Full Stack Developer with React and Node.js" or "Data Scientist with Python and Machine Learning"), the better I can understand the expectations and challenges you faced.`;
+            nextState = "skills";
+            
+            const aiMessage = {
+              id: Date.now() + 1,
+              type: "ai",
+              content: aiResponse,
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, aiMessage]);
+            setConversationState(nextState);
+            setLoading(false);
+          }, 1000);
+          return; // Exit early
+          break;
+
+        case "skills":
+          setUserContext(prev => ({ ...prev, skills: inputValue }));
+          
+          setLoading(true);
+          setTimeout(() => {
+            aiResponse = `Perfect! ${inputValue} - I have a clear picture of the technical landscape you're navigating. These skills are definitely in demand, which is great!\n\nNow, I want to understand how you're feeling about all this. Job searching and interviews can be an emotional rollercoaster - are you feeling anxious about your performance, frustrated with the process, excited but nervous, or maybe overwhelmed? There's no wrong answer here, and understanding your emotional state helps me provide the right kind of support.`;
+            nextState = "sentiment";
+            
+            const aiMessage = {
+              id: Date.now() + 1,
+              type: "ai",
+              content: aiResponse,
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, aiMessage]);
+            setConversationState(nextState);
+            setLoading(false);
+          }, 1200);
+          return; // Exit early
+          break;
+
+        case "sentiment":
+          setUserContext(prev => ({ ...prev, sentiment: inputValue }));
+          
+          setLoading(true);
+          setTimeout(() => {
+            const contextualResponse = generateContextualResponse();
+            aiResponse = `${contextualResponse}\n\nNow that I understand your background and how you're feeling, I'm ready to dive into the main event - your interview experience. Take your time and tell me everything that happened. I want to hear about:\n\n• The questions that caught you off guard\n• Moments when you felt confident\n• Times when you stumbled or felt uncertain\n• Technical challenges you faced\n• Anything you wish you had said differently\n\nRemember, there's no judgment here - every detail helps me understand your experience better and provide more personalized guidance. The more honest and detailed you are, the better I can help you turn this experience into preparation for your next success.`;
+            nextState = "reflection";
+            
+            const aiMessage = {
+              id: Date.now() + 1,
+              type: "ai",
+              content: aiResponse,
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, aiMessage]);
+            setConversationState(nextState);
+            setLoading(false);
+          }, 1500);
+          return; // Exit early
+          break;
+
+        case "reflection":
+          setUserContext(prev => ({ ...prev, interviewReflection: inputValue }));
+          
+          // Add thinking delay for reflection processing
+          setLoading(true);
+          const thinkingMessage = {
+            id: Date.now(),
+            type: "ai",
+            content: "Let me carefully read through your interview experience and understand what happened...\n\n*Reading and processing your reflection...*",
+            timestamp: new Date(),
+            isThinking: true
+          };
+          setMessages(prev => [...prev, thinkingMessage]);
+          
+          // Simulate thinking time
+          setTimeout(() => {
+            setMessages(prev => prev.filter(m => !m.isThinking));
+            aiResponse = `Thank you for sharing your interview experience so openly. I can tell you've put real thought into reflecting on what happened, and that self-awareness is already a huge strength.\n\nBefore I analyze your experience, are there any recurring patterns or mistakes from past interviews that you'd like me to consider? For example, things like "I always get nervous with coding challenges" or "I struggle with behavioral questions" or "I tend to ramble in my answers"?\n\nYou can either tell me about any patterns you've noticed, or just say "none" or "let's proceed" if you'd prefer to jump straight into the analysis.`;
+            nextState = "pastMistakes";
+            
+            const aiMessage = {
+              id: Date.now() + 1,
+              type: "ai",
+              content: aiResponse,
+              timestamp: new Date()
+            };
+            setMessages(prev => [...prev, aiMessage]);
+            setConversationState(nextState);
+            setLoading(false);
+          }, 2500);
+          return; // Exit early to prevent duplicate message
+          break;
+
+        case "pastMistakes":
+          if (inputValue.toLowerCase().includes("none") || inputValue.toLowerCase().includes("proceed")) {
+            setUserContext(prev => ({ ...prev, pastMistakes: [] }));
+          } else {
+            const mistakes = inputValue.split(',').map(m => m.trim()).filter(m => m.length > 0);
+            setUserContext(prev => ({ ...prev, pastMistakes: mistakes }));
+          }
+          
+          aiResponse = "Perfect! I now have all the context I need. Let me analyze your interview experience and provide personalized feedback and actionable strategies. This might take a moment as I'm processing everything you've shared...";
+          nextState = "analyzing";
+          
+          // Start analysis
+          setTimeout(() => {
+            handleAnalysis();
+          }, 1000);
+          break;
+
+        default:
+          aiResponse = "I'm not sure how to respond to that. Could you please try again?";
+      }
+
+      // Add AI response
+      const aiMessage = {
+        id: Date.now() + 1,
+        type: "ai",
+        content: aiResponse,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+      setConversationState(nextState);
+
+    } catch (error) {
+      const errorMessage = {
+        id: Date.now() + 1,
+        type: "ai",
+        content: "I apologize, but I encountered an error processing your message. Please try again.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateContextualResponse = () => {
+    const { sentiment } = userContext;
+    let response = `Thank you for being so open about how you're feeling. `;
+    
+    if (sentiment.toLowerCase().includes('nervous') || sentiment.toLowerCase().includes('anxious')) {
+      response += "Feeling nervous is completely natural - it shows you care about this opportunity and your career growth. That nervousness often comes from a place of passion, which is actually a strength.";
+    } else if (sentiment.toLowerCase().includes('frustrated') || sentiment.toLowerCase().includes('disappointed')) {
+      response += "I can really understand that frustration. Job searching can feel like an uphill battle sometimes, but every interview - even the challenging ones - teaches us something valuable about ourselves and the process.";
+    } else if (sentiment.toLowerCase().includes('confident') || sentiment.toLowerCase().includes('excited')) {
+      response += "I love hearing that confidence! That positive mindset is such an asset in interviews and will serve you well throughout your career journey.";
+    } else if (sentiment.toLowerCase().includes('overwhelmed')) {
+      response += "Feeling overwhelmed is so understandable - there's a lot of pressure in interviews, especially when you're passionate about the role. Let's break this down together and make it feel more manageable.";
+    } else {
+      response += "I appreciate you sharing your feelings with me. Understanding your emotional state helps me provide the right kind of support.";
+    }
+
+    return response;
+  };
+
+  const handleAnalysis = async () => {
+    try {
+      // Add analyzing steps with delays
+      const analyzingSteps = [
+        "🔍 Analyzing your interview experience...",
+        "🧠 Processing your responses and identifying patterns...", 
+        "📊 Generating personalized insights and recommendations...",
+        "✨ Finalizing your custom action plan..."
+      ];
+      
+      for (let i = 0; i < analyzingSteps.length; i++) {
+        const stepMessage = {
+          id: Date.now() + i,
+          type: "ai", 
+          content: analyzingSteps[i],
+          timestamp: new Date(),
+          isThinking: true
+        };
+        
+        setMessages(prev => {
+          // Remove previous thinking message and add new one
+          const filtered = prev.filter(m => !m.isThinking);
+          return [...filtered, stepMessage];
+        });
+        
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+      
       const response = await fetch("http://localhost:5000/api/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          reflection: reflection.trim(),
-          email: email.trim() || undefined,
-          pastMistakes: pastMistakes.length > 0 ? pastMistakes : undefined
-        })
+          reflection: userContext.interviewReflection,
+          pastMistakes: userContext.pastMistakes,
+          userContext: {
+            status: userContext.status,
+            skills: userContext.skills,
+            sentiment: userContext.sentiment
+          }
+        }),
       });
 
       const data = await response.json();
       
-      if (!response.ok) {
+      // Remove thinking message
+      setMessages(prev => prev.filter(m => !m.isThinking));
+      
+      if (data.category || data.suggestions || data.actionItems) {
+        const analysisMessage = formatAnalysisResponse(data);
+        const aiMessage = {
+          id: Date.now(),
+          type: "ai",
+          content: analysisMessage,
+          timestamp: new Date(),
+          isAnalysis: true
+        };
+        
+        setMessages(prev => [...prev, aiMessage]);
+        setConversationState("completed");
+      } else {
         throw new Error(data.error || "Analysis failed");
       }
-
-      setAnalysis(data);
     } catch (error) {
-      console.error("Analysis error:", error);
-      alert("Analysis failed: " + error.message);
-    } finally {
-      setLoading(false);
+      console.error('Analysis error:', error);
+      
+      // Remove thinking message
+      setMessages(prev => prev.filter(m => !m.isThinking));
+      
+      const errorMessage = {
+        id: Date.now(),
+        type: "ai",
+        content: `I apologize, but I'm having trouble analyzing your interview right now. Let me try to provide some general guidance based on what you've shared:\n\n**From your situation**: As a final year student with 4 interviews in 6 months, you're actively engaging in the job market, which is great experience.\n\n**Key areas to focus on**:\n• **Application strategy**: Consider quality over quantity - research companies thoroughly\n• **Interview skills**: Practice common questions and technical challenges\n• **Follow-up**: Always send thank-you notes and follow up professionally\n\n**Next steps**:\n• Practice mock interviews with career services\n• Get feedback from previous interviews if possible\n• Consider networking events and job fairs\n\nWould you like to discuss any specific aspect of your interviews in more detail?`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      setConversationState("completed");
     }
   };
 
-  const handleReset = () => {
-    setReflection("");
-    setEmail("");
-    setPastMistakes([]);
-    setNewMistake("");
-    setAnalysis(null);
+  const formatAnalysisResponse = (analysis) => {
+    let response = "🎯 **Interview Analysis Complete**\n\n";
+    
+    if (analysis.category) {
+      response += `**Primary Focus Area:** ${analysis.category}\n\n`;
+    }
+
+    if (analysis.confidence) {
+      const confidenceLevel = analysis.confidence >= 80 ? "High" : 
+                              analysis.confidence >= 60 ? "Good" : 
+                              analysis.confidence >= 40 ? "Moderate" : "Limited";
+      response += `**Analysis Confidence:** ${analysis.confidence}% (${confidenceLevel})\n\n`;
+    }
+
+    if (analysis.suggestions && analysis.suggestions.length > 0) {
+      response += "💡 **Key Insights & Strategies:**\n\n";
+      analysis.suggestions.forEach((suggestion, index) => {
+        response += `${index + 1}. ${suggestion}\n\n`;
+      });
+    }
+
+    if (analysis.actionItems && analysis.actionItems.length > 0) {
+      response += "🎯 **Your Action Plan:**\n\n";
+      analysis.actionItems.forEach((item, index) => {
+        response += `**Step ${index + 1}:** ${item}\n\n`;
+      });
+    }
+
+    response += "\n---\n\n🌟 **Remember:** Every interview experience, whether it feels successful or challenging, is building your skills and resilience. You're taking the right steps by reflecting and seeking feedback. Keep going - your breakthrough is closer than you think!\n\nWould you like to discuss any specific part of this analysis further, or start a new interview reflection?";
+
+    return response;
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setCurrentInput(e.target.value);
+    // Auto-resize textarea
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+    }
+  };
+
+  const resetConversation = () => {
+    setMessages([{
+      id: 1,
+      type: "ai",
+      content: `👋 Welcome back! I'm ready to help you with another interview reflection. Let's start fresh - what's your current situation? Are you a student, employed, or actively job hunting?`,
+      timestamp: new Date()
+    }]);
+    setUserContext({
+      status: "",
+      skills: "",
+      sentiment: "",
+      interviewReflection: "",
+      pastMistakes: []
+    });
+    setConversationState("greeting");
+    setCurrentInput("");
+  };
+
+  const formatMessageContent = (content) => {
+    // Simple markdown-like formatting
+    return content
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/• (.*?)(?=\n|$)/g, '• <span style="margin-left: 8px;">$1</span>')
+      .replace(/\n/g, '<br/>');
   };
 
   return (
     <div style={{
+      minHeight: '100vh',
       background: 'linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%)',
-      color: '#ffffff',
-      margin: 0,
-      padding: 0,
-      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       position: 'relative',
-      minHeight: '100vh'
+      overflow: 'hidden'
     }}>
-      {/* Animated Background Elements */}
+      {/* Animated Background Elements - Subtle and Professional */}
       <div style={{
         position: 'absolute',
         top: '-20%',
         right: '-10%',
         width: '800px',
         height: '800px',
-        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)',
+        background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%)',
         borderRadius: '50%',
         filter: 'blur(100px)',
         animation: 'float 20s ease-in-out infinite',
@@ -92,617 +417,353 @@ export default function InterviewDiagnostic({ user, onLogout }) {
         left: '-15%',
         width: '600px',
         height: '600px',
-        background: 'linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 142, 83, 0.1) 100%)',
+        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)',
         borderRadius: '50%',
         filter: 'blur(80px)',
         animation: 'float 25s ease-in-out infinite reverse',
         zIndex: 1
       }}></div>
 
-      {/* Flowing curve elements */}
-      <svg
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          width: '100%',
-          height: '100%',
-          zIndex: 2,
-          pointerEvents: 'none'
-        }}
-        viewBox="0 0 1920 1080"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient id="curve1" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style={{stopColor: 'rgba(102, 126, 234, 0.3)', stopOpacity: 1}} />
-            <stop offset="100%" style={{stopColor: 'rgba(118, 75, 162, 0.1)', stopOpacity: 1}} />
-          </linearGradient>
-          <linearGradient id="curve2" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style={{stopColor: 'rgba(255, 107, 107, 0.2)', stopOpacity: 1}} />
-            <stop offset="100%" style={{stopColor: 'rgba(255, 142, 83, 0.1)', stopOpacity: 1}} />
-          </linearGradient>
-        </defs>
-        <path
-          d="M1200,0 C1400,200 1600,400 1920,300 L1920,0 Z"
-          fill="url(#curve1)"
-          style={{ animation: 'morphing 15s ease-in-out infinite' }}
-        />
-        <path
-          d="M800,1080 C1000,800 1200,600 1920,700 L1920,1080 Z"
-          fill="url(#curve2)"
-          style={{ animation: 'morphing 20s ease-in-out infinite reverse' }}
-        />
-      </svg>
-
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 10 }}>
+      {/* Main Container - Full Width ChatGPT Style */}
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        position: 'relative',
+        zIndex: 10
+      }}>
         {/* Header */}
-        <header style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          padding: '24px 0',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          background: 'rgba(0, 0, 0, 0.1)',
+        <header style={{
+          background: 'rgba(0, 0, 0, 0.3)',
           backdropFilter: 'blur(20px)',
-          borderRadius: '0 0 20px 20px',
-          marginBottom: '40px'
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          padding: '16px 24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexShrink: 0
         }}>
-          <div>
-            <h1 style={{ 
-              fontSize: '32px', 
-              fontWeight: '800', 
-              color: '#ffffff',
-              margin: 0,
-              marginBottom: '4px',
-              letterSpacing: '-0.5px',
-              background: 'linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent'
-            }}>
-              Welcome back, {user?.name || 'User'}
-            </h1>
-            <p style={{ 
-              color: 'rgba(255, 255, 255, 0.6)', 
-              fontSize: '16px',
-              margin: 0
-            }}>
-              Ready to analyze your interview performance?
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #4169E1 0%, #87CEEB 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '20px'
+            }}>🤖</div>
+            <div>
+              <h1 style={{
+                fontSize: '20px',
+                fontWeight: '700',
+                color: '#ffffff',
+                margin: 0,
+                letterSpacing: '-0.5px'
+              }}>MistakeLoop AI Coach</h1>
+              <p style={{
+                color: 'rgba(255, 255, 255, 0.6)',
+                fontSize: '14px',
+                margin: 0
+              }}>Transform your interview experiences into success</p>
+            </div>
           </div>
-          <button
-            onClick={onLogout}
-            style={{
-              padding: '12px 28px',
-              borderRadius: '50px',
-              border: 'none',
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
-              color: '#ffffff',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '600',
-              transition: 'all 0.2s ease',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}
-            onMouseOver={(e) => {
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.boxShadow = '0 8px 25px rgba(255, 255, 255, 0.1)';
-              e.target.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.transform = 'translateY(0px)';
-              e.target.style.boxShadow = 'none';
-              e.target.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)';
-            }}
-          >
-            Logout
-          </button>
+          
+          <div style={{ display: 'flex', gap: '12px' }}>
+            {conversationState === "completed" && (
+              <button
+                onClick={resetConversation}
+                style={{
+                  padding: '12px 24px',
+                  borderRadius: '50px',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease',
+                  backdropFilter: 'blur(10px)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 8px 25px rgba(255, 255, 255, 0.1)';
+                  e.target.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.transform = 'translateY(0px)';
+                  e.target.style.boxShadow = 'none';
+                  e.target.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)';
+                }}
+              >
+                New Session
+              </button>
+            )}
+            <button
+              onClick={onLogout}
+              style={{
+                padding: '12px 24px',
+                borderRadius: '50px',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
+                color: '#ffffff',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '600',
+                transition: 'all 0.2s ease',
+                backdropFilter: 'blur(10px)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.transform = 'translateY(-2px)';
+                e.target.style.boxShadow = '0 8px 25px rgba(255, 255, 255, 0.1)';
+                e.target.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.transform = 'translateY(0px)';
+                e.target.style.boxShadow = 'none';
+                e.target.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)';
+              }}
+            >
+              Logout
+            </button>
+          </div>
         </header>
 
-        {/* Main Content */}
-        <main style={{ paddingTop: '40px' }}>
+        {/* Chat Messages Area */}
+        <div style={{
+          flex: 1,
+          overflow: 'auto',
+          padding: '24px',
+          display: 'flex',
+          flexDirection: 'column',
+          background: 'rgba(0, 0, 0, 0.02)',
+          minHeight: 0 // Important: allows flex child to shrink below its content size
+        }}>
           <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: '1fr 400px', 
-            gap: '40px',
-            '@media (max-width: 1200px)': {
-              gridTemplateColumns: '1fr',
-              gap: '24px'
-            }
+            maxWidth: '800px', 
+            margin: '0 auto', 
+            width: '100%',
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: messages.length === 0 ? 'center' : 'flex-start'
           }}>
-            {/* Left Column - Input */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {/* Interview Reflection Card */}
-              <div style={{ 
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)', 
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                borderRadius: '20px', 
-                padding: '32px',
-                backdropFilter: 'blur(20px)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '24px',
+              paddingBottom: '24px'
+            }}>
+            {messages.map((message) => (
+              <div key={message.id} style={{
+                display: 'flex',
+                gap: '16px',
+                alignItems: 'flex-start',
+                flexDirection: message.type === 'user' ? 'row-reverse' : 'row'
               }}>
-                <h2 style={{ 
-                  fontSize: '18px', 
-                  fontWeight: '600', 
-                  color: '#ffffff',
-                  marginBottom: '16px',
-                  margin: 0
-                }}>
-                  Interview Reflection
-                </h2>
-                <textarea
-                  value={reflection}
-                  onChange={(e) => setReflection(e.target.value)}
-                  placeholder="Describe what happened in your interview... What went wrong? What could you have done better? Be specific about mistakes, missed opportunities, or areas where you struggled."
-                  style={{
-                    width: '100%',
-                    height: '160px',
-                    padding: '20px',
-                    background: 'rgba(0, 0, 0, 0.2)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '12px',
-                    color: '#ffffff',
-                    fontSize: '16px',
-                    outline: 'none',
-                    resize: 'vertical',
-                    fontFamily: 'inherit',
-                    lineHeight: '1.6',
-                    marginTop: '16px',
-                    backdropFilter: 'blur(10px)'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                    e.target.style.background = 'rgba(0, 0, 0, 0.3)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                    e.target.style.background = 'rgba(0, 0, 0, 0.2)';
-                  }}
-                />
-              </div>
-
-              {/* Email Card */}
-              <div style={{ 
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)', 
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                borderRadius: '20px', 
-                padding: '32px',
-                backdropFilter: 'blur(20px)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <h2 style={{ 
-                  fontSize: '18px', 
-                  fontWeight: '600', 
-                  color: '#ffffff',
-                  marginBottom: '16px',
-                  margin: 0
-                }}>
-                  Email (Auto-filled)
-                </h2>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your.email@example.com"
-                  style={{
-                    width: '100%',
-                    padding: '20px',
-                    background: 'rgba(0, 0, 0, 0.2)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '12px',
-                    color: '#ffffff',
-                    fontSize: '16px',
-                    outline: 'none',
-                    fontFamily: 'inherit',
-                    marginTop: '16px',
-                    backdropFilter: 'blur(10px)'
-                  }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                    e.target.style.background = 'rgba(0, 0, 0, 0.3)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                    e.target.style.background = 'rgba(0, 0, 0, 0.2)';
-                  }}
-                />
-                <p style={{ color: '#666666', fontSize: '12px', marginTop: '8px', margin: '8px 0 0 0' }}>
-                  This helps track your progress over time
-                </p>
-              </div>
-
-              {/* Past Mistakes Card */}
-              <div style={{ 
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)', 
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                borderRadius: '20px', 
-                padding: '32px',
-                backdropFilter: 'blur(20px)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <h2 style={{ 
-                  fontSize: '18px', 
-                  fontWeight: '600', 
-                  color: '#ffffff',
-                  marginBottom: '16px',
-                  margin: 0
-                }}>
-                  Known Past Mistakes
-                </h2>
-                <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-                  <input
-                    type="text"
-                    value={newMistake}
-                    onChange={(e) => setNewMistake(e.target.value)}
-                    placeholder="e.g., Poor communication, Lack of preparation"
-                    style={{
-                      flex: 1,
-                      padding: '16px 20px',
-                      background: 'rgba(0, 0, 0, 0.2)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      borderRadius: '12px',
-                      color: '#ffffff',
-                      fontSize: '16px',
-                      outline: 'none',
-                      fontFamily: 'inherit',
-                      backdropFilter: 'blur(10px)'
-                    }}
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddMistake()}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                      e.target.style.background = 'rgba(0, 0, 0, 0.3)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                      e.target.style.background = 'rgba(0, 0, 0, 0.2)';
-                    }}
-                  />
-                  <button
-                    onClick={handleAddMistake}
-                    style={{
-                      padding: '16px 28px',
-                      background: 'linear-gradient(135deg, #4169E1 0%, #87CEEB 100%)',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderRadius: '12px',
-                      fontSize: '16px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.5px',
-                      boxShadow: '0 4px 14px 0 rgba(65, 105, 225, 0.39)'
-                    }}
-                    onMouseOver={(e) => {
-                      e.target.style.transform = 'translateY(-2px)';
-                      e.target.style.boxShadow = '0 8px 25px 0 rgba(65, 105, 225, 0.5)';
-                    }}
-                    onMouseOut={(e) => {
-                      e.target.style.transform = 'translateY(0px)';
-                      e.target.style.boxShadow = '0 4px 14px 0 rgba(65, 105, 225, 0.39)';
-                    }}
-                  >
-                    Add
-                  </button>
-                </div>
-                
-                {pastMistakes.length > 0 && (
-                  <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {pastMistakes.map((mistake, index) => (
-                      <div key={index} style={{ 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'space-between', 
-                        background: 'rgba(0, 0, 0, 0.2)', 
-                        padding: '16px 20px', 
-                        borderRadius: '12px',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        backdropFilter: 'blur(10px)'
-                      }}>
-                        <span style={{ color: '#ffffff', fontSize: '14px' }}>{mistake}</span>
-                        <button
-                          onClick={() => handleRemoveMistake(index)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            color: '#666666',
-                            cursor: 'pointer',
-                            fontSize: '16px',
-                            padding: '4px',
-                            borderRadius: '4px',
-                            transition: 'color 0.2s ease'
-                          }}
-                          onMouseOver={(e) => e.target.style.color = '#ffffff'}
-                          onMouseOut={(e) => e.target.style.color = '#666666'}
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <button
-                  onClick={handleAnalyze}
-                  disabled={loading || !reflection.trim()}
-                  style={{
-                    flex: 1,
-                    padding: '20px 32px',
-                    background: loading || !reflection.trim() ? 'rgba(100, 100, 100, 0.3)' : 'linear-gradient(135deg, #4169E1 0%, #87CEEB 100%)',
-                    color: loading || !reflection.trim() ? 'rgba(255, 255, 255, 0.4)' : '#ffffff',
-                    border: 'none',
-                    borderRadius: '50px',
-                    fontWeight: '600',
-                    cursor: loading || !reflection.trim() ? 'not-allowed' : 'pointer',
-                    fontSize: '18px',
-                    fontFamily: 'inherit',
-                    transition: 'all 0.2s ease',
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px',
-                    boxShadow: loading || !reflection.trim() ? 'none' : '0 8px 32px 0 rgba(65, 105, 225, 0.4)'
-                  }}
-                  onMouseOver={(e) => {
-                    if (!loading && reflection.trim()) {
-                      e.target.style.transform = 'translateY(-3px)';
-                      e.target.style.boxShadow = '0 12px 48px 0 rgba(65, 105, 225, 0.6)';
-                    }
-                  }}
-                  onMouseOut={(e) => {
-                    if (!loading && reflection.trim()) {
-                      e.target.style.transform = 'translateY(0px)';
-                      e.target.style.boxShadow = '0 8px 32px 0 rgba(65, 105, 225, 0.4)';
-                    }
-                  }}
-                >
-                  {loading ? "Analyzing..." : "Analyze Interview"}
-                </button>
-                <button
-                  onClick={handleReset}
-                  style={{
-                    padding: '20px 32px',
-                    background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
-                    color: '#ffffff',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    borderRadius: '50px',
-                    cursor: 'pointer',
-                    fontSize: '18px',
-                    fontFamily: 'inherit',
-                    fontWeight: '600',
-                    transition: 'all 0.2s ease',
-                    backdropFilter: 'blur(10px)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '1px'
-                  }}
-                  onMouseOver={(e) => {
-                    e.target.style.transform = 'translateY(-2px)';
-                    e.target.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)';
-                    e.target.style.boxShadow = '0 8px 25px rgba(255, 255, 255, 0.1)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.target.style.transform = 'translateY(0px)';
-                    e.target.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)';
-                    e.target.style.boxShadow = 'none';
-                  }}
-                >
-                  Reset
-                </button>
-              </div>
-            </div>
-
-            {/* Right Column - Results & Tips */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {analysis ? (
-                <div style={{ 
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)', 
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  borderRadius: '20px', 
-                  padding: '32px',
-                  backdropFilter: 'blur(20px)',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-                }}>
-                  <h2 style={{ 
-                    fontSize: '18px', 
-                    fontWeight: '600', 
-                    color: '#ffffff',
-                    marginBottom: '20px',
-                    margin: 0
-                  }}>
-                    Analysis Results
-                  </h2>
-                  
-                  {analysis.category && (
-                    <div style={{ 
-                      marginBottom: '20px', 
-                      padding: '16px', 
-                      background: '#0a0a0a', 
-                      borderRadius: '8px',
-                      border: '1px solid #1f1f1f'
-                    }}>
-                      <h3 style={{ 
-                        fontWeight: '600', 
-                        color: '#ffffff',
-                        fontSize: '14px',
-                        margin: '0 0 8px 0'
-                      }}>Issue Category:</h3>
-                      <p style={{ color: '#cccccc', margin: 0, fontSize: '14px' }}>{analysis.category}</p>
-                    </div>
-                  )}
-
-                  {analysis.suggestions && analysis.suggestions.length > 0 && (
-                    <div style={{ marginBottom: '20px' }}>
-                      <h3 style={{ 
-                        fontWeight: '600', 
-                        color: '#ffffff', 
-                        marginBottom: '12px',
-                        fontSize: '14px',
-                        margin: '0 0 12px 0'
-                      }}>Improvement Suggestions:</h3>
-                      <ul style={{ 
-                        listStyle: 'none', 
-                        padding: 0, 
-                        margin: 0,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px'
-                      }}>
-                        {analysis.suggestions.map((suggestion, index) => (
-                          <li key={index} style={{ 
-                            color: '#cccccc', 
-                            paddingLeft: '16px', 
-                            borderLeft: '2px solid #333333',
-                            fontSize: '14px',
-                            lineHeight: '1.5'
-                          }}>
-                            {suggestion}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {analysis.actionItems && analysis.actionItems.length > 0 && (
-                    <div style={{ marginBottom: '20px' }}>
-                      <h3 style={{ 
-                        fontWeight: '600', 
-                        color: '#ffffff', 
-                        marginBottom: '12px',
-                        fontSize: '14px',
-                        margin: '0 0 12px 0'
-                      }}>Action Items:</h3>
-                      <ul style={{ 
-                        listStyle: 'none', 
-                        padding: 0, 
-                        margin: 0,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px'
-                      }}>
-                        {analysis.actionItems.map((item, index) => (
-                          <li key={index} style={{ 
-                            color: '#cccccc', 
-                            paddingLeft: '16px', 
-                            borderLeft: '2px solid #333333',
-                            fontSize: '14px',
-                            lineHeight: '1.5'
-                          }}>
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {analysis.confidence && (
-                    <div style={{ 
-                      padding: '16px', 
-                      background: '#0a0a0a', 
-                      borderRadius: '8px',
-                      border: '1px solid #1f1f1f'
-                    }}>
-                      <h3 style={{ 
-                        fontWeight: '600', 
-                        color: '#ffffff',
-                        fontSize: '14px',
-                        margin: '0 0 12px 0'
-                      }}>Confidence Level:</h3>
-                      <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <div style={{ 
-                          flex: 1, 
-                          background: '#333333', 
-                          borderRadius: '4px', 
-                          height: '8px',
-                          marginRight: '12px'
-                        }}>
-                          <div style={{ 
-                            background: '#ffffff', 
-                            height: '8px', 
-                            borderRadius: '4px',
-                            width: `${analysis.confidence}%`,
-                            transition: 'width 0.3s ease'
-                          }}></div>
-                        </div>
-                        <span style={{ fontSize: '14px', color: '#cccccc' }}>{analysis.confidence}%</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div style={{ 
-                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)', 
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  borderRadius: '20px', 
-                  padding: '48px 32px',
-                  textAlign: 'center',
-                  backdropFilter: 'blur(20px)',
-                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-                }}>
-                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>🤖</div>
-                  <h2 style={{ 
-                    fontSize: '18px', 
-                    fontWeight: '600', 
-                    color: '#ffffff',
-                    marginBottom: '8px',
-                    margin: '0 0 8px 0'
-                  }}>
-                    Ready for Analysis
-                  </h2>
-                  <p style={{ 
-                    color: '#666666',
-                    fontSize: '14px',
-                    lineHeight: '1.5',
-                    margin: 0
-                  }}>
-                    Enter your interview reflection and click "Analyze Interview" to get AI-powered feedback and improvement suggestions.
-                  </p>
-                </div>
-              )}
-
-              {/* Quick Tips */}
-              <div style={{ 
-                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)', 
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                borderRadius: '20px', 
-                padding: '32px',
-                backdropFilter: 'blur(20px)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-              }}>
-                <h2 style={{ 
-                  fontSize: '18px', 
-                  fontWeight: '600', 
-                  color: '#ffffff',
-                  marginBottom: '16px',
-                  margin: '0 0 16px 0'
-                }}>
-                  Quick Tips
-                </h2>
-                <ul style={{ 
-                  listStyle: 'none', 
-                  padding: 0, 
-                  margin: 0,
-                  color: '#cccccc',
-                  fontSize: '14px',
-                  lineHeight: '1.6',
+                {/* Avatar */}
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  background: message.type === 'ai' 
+                    ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+                    : 'linear-gradient(135deg, #4169E1 0%, #87CEEB 100%)',
                   display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px'
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '18px',
+                  flexShrink: 0
                 }}>
-                  <li>• Be specific about what went wrong</li>
-                  <li>• Mention the type of interview (technical, behavioral, etc.)</li>
-                  <li>• Include your preparation level</li>
-                  <li>• Note any recurring patterns from past interviews</li>
-                  <li>• Track your email to build a progress history</li>
-                </ul>
+                  {message.type === 'ai' ? '🤖' : '👤'}
+                </div>
+
+                {/* Message Content */}
+                <div style={{
+                  background: message.type === 'ai' 
+                    ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)'
+                    : 'linear-gradient(135deg, rgba(65, 105, 225, 0.4) 0%, rgba(135, 206, 235, 0.3) 100%)',
+                  border: message.type === 'ai'
+                    ? '1px solid rgba(255, 255, 255, 0.15)'
+                    : '1px solid rgba(65, 105, 225, 0.5)',
+                  borderRadius: message.type === 'ai' ? '16px 16px 16px 4px' : '16px 16px 4px 16px',
+                  padding: '20px 24px',
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+                  flex: 1,
+                  maxWidth: '75%',
+                  marginLeft: message.type === 'user' ? 'auto' : '0',
+                  marginRight: message.type === 'ai' ? 'auto' : '0'
+                }}>
+                  <div style={{
+                    color: '#ffffff',
+                    fontSize: '16px',
+                    lineHeight: '1.6',
+                    whiteSpace: 'pre-wrap'
+                  }} dangerouslySetInnerHTML={{
+                    __html: formatMessageContent(message.content)
+                  }}></div>
+
+                  <div style={{
+                    fontSize: '12px',
+                    color: 'rgba(255, 255, 255, 0.4)',
+                    marginTop: '12px'
+                  }}>
+                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
               </div>
+            ))}
+
+            {loading && (
+              <div style={{
+                display: 'flex',
+                gap: '16px',
+                alignItems: 'flex-start'
+              }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, #4169E1 0%, #87CEEB 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '18px'
+                }}>🤖</div>
+                <div style={{
+                  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  borderRadius: '16px',
+                  padding: '20px 24px',
+                  backdropFilter: 'blur(20px)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}>
+                  <div style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: '#4169E1',
+                    animation: 'pulse 1.5s ease-in-out infinite'
+                  }}></div>
+                  <div style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: '#4169E1',
+                    animation: 'pulse 1.5s ease-in-out infinite 0.2s'
+                  }}></div>
+                  <div style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: '#4169E1',
+                    animation: 'pulse 1.5s ease-in-out infinite 0.4s'
+                  }}></div>
+                  <span style={{ color: 'rgba(255, 255, 255, 0.6)', marginLeft: '8px' }}>
+                    Thinking...
+                  </span>
+                </div>
+              </div>
+            )}
+            </div>
+            <div ref={messagesEndRef} style={{ height: '1px' }} />
+          </div>
+        </div>
+
+        {/* Input Area */}
+        <div style={{
+          background: 'rgba(0, 0, 0, 0.1)',
+          backdropFilter: 'blur(20px)',
+          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+          padding: '24px',
+          flexShrink: 0
+        }}>
+          <div style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              borderRadius: '16px',
+              padding: '16px 20px',
+              backdropFilter: 'blur(20px)',
+              display: 'flex',
+              gap: '16px',
+              alignItems: 'flex-end'
+            }}>
+              <textarea
+                ref={textareaRef}
+                value={currentInput}
+                onChange={handleInputChange}
+                onKeyPress={handleKeyPress}
+                placeholder={
+                  conversationState === "analyzing" || loading 
+                    ? "Please wait while I analyze your interview..." 
+                    : "Type your message here... (Press Enter to send, Shift+Enter for new line)"
+                }
+                disabled={conversationState === "analyzing" || loading}
+                style={{
+                  flex: 1,
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#ffffff',
+                  fontSize: '16px',
+                  outline: 'none',
+                  resize: 'none',
+                  fontFamily: 'inherit',
+                  lineHeight: '1.5',
+                  minHeight: '24px',
+                  maxHeight: '120px',
+                  overflow: 'auto'
+                }}
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!currentInput.trim() || loading || conversationState === "analyzing"}
+                style={{
+                  background: (!currentInput.trim() || loading || conversationState === "analyzing")
+                    ? 'rgba(100, 100, 100, 0.3)'
+                    : 'linear-gradient(135deg, #4169E1 0%, #87CEEB 100%)',
+                  color: (!currentInput.trim() || loading || conversationState === "analyzing")
+                    ? 'rgba(255, 255, 255, 0.4)'
+                    : '#ffffff',
+                  border: 'none',
+                  borderRadius: '12px',
+                  padding: '12px 20px',
+                  cursor: (!currentInput.trim() || loading || conversationState === "analyzing") 
+                    ? 'not-allowed' 
+                    : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  flexShrink: 0
+                }}
+                onMouseOver={(e) => {
+                  if (currentInput.trim() && !loading && conversationState !== "analyzing") {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 4px 14px 0 rgba(65, 105, 225, 0.39)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (currentInput.trim() && !loading && conversationState !== "analyzing") {
+                    e.target.style.transform = 'translateY(0px)';
+                    e.target.style.boxShadow = 'none';
+                  }
+                }}
+              >
+                Send
+              </button>
             </div>
           </div>
-        </main>
+        </div>
       </div>
 
       <style jsx>{`
@@ -714,7 +775,7 @@ export default function InterviewDiagnostic({ user, onLogout }) {
         }
         
         ::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.2);
+          background: rgba(0, 0, 0, 0.1);
           border-radius: 10px;
         }
         
@@ -732,7 +793,7 @@ export default function InterviewDiagnostic({ user, onLogout }) {
         /* Firefox Scrollbar */
         * {
           scrollbar-width: thin;
-          scrollbar-color: #667eea rgba(0, 0, 0, 0.2);
+          scrollbar-color: #667eea rgba(0, 0, 0, 0.1);
         }
         
         @keyframes float {
@@ -740,30 +801,29 @@ export default function InterviewDiagnostic({ user, onLogout }) {
           50% { transform: translateY(-30px) rotate(5deg); }
         }
         
-        @keyframes morphing {
-          0%, 100% { d: path("M1200,0 C1400,200 1600,400 1920,300 L1920,0 Z"); }
-          50% { d: path("M1000,0 C1300,150 1500,350 1920,250 L1920,0 Z"); }
-        }
-        
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
         @keyframes pulse {
           0%, 100% {
-            opacity: 0.5;
+            opacity: 0.4;
             transform: scale(1);
           }
           50% {
             opacity: 1;
             transform: scale(1.2);
+          }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+          .chat-container {
+            padding: 16px;
+          }
+          
+          .message-content {
+            padding: 16px 20px;
+          }
+          
+          .input-area {
+            padding: 16px;
           }
         }
       `}</style>

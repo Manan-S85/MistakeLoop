@@ -24,6 +24,12 @@ const reflectionSchema = new mongoose.Schema({
   recommendedActions: {
     type: String
   },
+  userContext: {
+    status: String,
+    skills: String,
+    sentiment: String,
+    situationUnderstanding: String
+  },
   createdAt: {
     type: Date,
     default: Date.now

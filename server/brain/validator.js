@@ -69,3 +69,41 @@ export function validateLLMResponse(text) {
     return null;
   }
 }
+
+// Fallback function to provide structured response when LLM fails
+export function generateFallbackResponse(userContext, reflection) {
+  const fallbackResponse = {
+    category: "Interview Skills Development",
+    confidence: 60,
+    suggestions: [],
+    actionItems: []
+  };
+
+  // Generate context-based suggestions
+  if (userContext?.sentiment && userContext.sentiment.toLowerCase().includes('nervous')) {
+    fallbackResponse.suggestions.push(
+      "I noticed you mentioned feeling nervous - this is completely normal! The key is transforming that nervous energy into focused preparation.",
+      "Practice the STAR method (Situation, Task, Action, Result) for behavioral questions to build confidence in your storytelling.",
+      "Record yourself answering common interview questions and review them to identify areas for improvement."
+    );
+  }
+
+  if (userContext?.skills) {
+    fallbackResponse.suggestions.push(
+      `For ${userContext.skills} interviews, focus on hands-on technical preparation and building a portfolio of relevant projects.`,
+      "Research the company's tech stack and be prepared to discuss how your experience aligns with their needs."
+    );
+  }
+
+  // Generate universal action items
+  fallbackResponse.actionItems = [
+    "This Week: Practice 3 behavioral questions daily using the STAR method. Record yourself and refine your answers.",
+    "Week 2-3: Complete 2-3 technical assessments or coding challenges to sharpen your problem-solving skills.",  
+    "Month 2: Schedule mock interviews with career services or peers to get feedback on your performance.",
+    "Daily Routine: Morning (30 min): Review company research and role requirements. Evening (45 min): Practice technical skills or behavioral questions.",
+    "Resource Toolkit: Use Glassdoor for company insights, LeetCode/HackerRank for technical prep, and Pramp for mock interviews.",
+    "Track Progress: Keep an interview journal noting what went well, areas for improvement, and lessons learned from each experience."
+  ];
+
+  return fallbackResponse;
+}

@@ -3,13 +3,19 @@ import { useState } from "react";
 export default function HomePage({ onLogin }) {
   const [showLogin, setShowLogin] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: ''
   });
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
   const handleInputChange = (e) => {
     setFormData({
@@ -17,12 +23,14 @@ export default function HomePage({ onLogin }) {
       [e.target.name]: e.target.value
     });
     setError('');
+    setMessage('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setMessage('');
 
     try {
       const endpoint = isRegistering ? 'register' : 'login';
@@ -47,7 +55,7 @@ export default function HomePage({ onLogin }) {
 
       if (isRegistering) {
         setIsRegistering(false);
-        setError('Registration successful! Please login.');
+        setMessage('Registration successful! Please login.');
         setFormData({ name: '', email: '', password: '' });
       } else {
         onLogin(data);
@@ -59,7 +67,518 @@ export default function HomePage({ onLogin }) {
     }
   };
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: forgotPasswordEmail }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok && data.userExists) {
+        setMessage("User verified! You can now create a new password.");
+        // Move to password reset form
+        setTimeout(() => {
+          setShowForgotPassword(false);
+          setShowPasswordReset(true);
+          setMessage('');
+        }, 1500);
+      } else {
+        setError(data.message || "User not found in our database");
+      }
+    } catch (error) {
+      setError("Error verifying user");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setMessage('');
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email: forgotPasswordEmail,
+          newPassword 
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setMessage("Password updated successfully! You can now login with your new password.");
+        setTimeout(() => {
+          // Reset all states and go back to login
+          setShowPasswordReset(false);
+          setShowForgotPassword(false);
+          setForgotPasswordEmail('');
+          setNewPassword('');
+          setConfirmPassword('');
+          setMessage('');
+          setError('');
+        }, 2000);
+      } else {
+        setError(data.message || "Error updating password");
+      }
+    } catch (error) {
+      setError("Error updating password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (showLogin) {
+    // Password Reset Form (Step 2)
+    if (showPasswordReset) {
+      return (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.95)',
+          backdropFilter: 'blur(20px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.95) 0%, rgba(25, 25, 55, 0.95) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '24px',
+            padding: '48px',
+            maxWidth: '420px',
+            width: '100%',
+            position: 'relative',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+          }}>
+            <button
+              onClick={() => {
+                setShowPasswordReset(false);
+                setShowForgotPassword(false);
+                setError('');
+                setMessage('');
+                setForgotPasswordEmail('');
+                setNewPassword('');
+                setConfirmPassword('');
+              }}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: 'none',
+                border: 'none',
+                color: 'rgba(255, 255, 255, 0.6)',
+                fontSize: '24px',
+                cursor: 'pointer',
+                transition: 'color 0.2s ease'
+              }}
+              onMouseOver={(e) => e.target.style.color = '#ffffff'}
+              onMouseOut={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.6)'}
+            >
+              ×
+            </button>
+
+            <h2 style={{
+              color: '#ffffff',
+              fontSize: '32px',
+              fontWeight: '700',
+              marginBottom: '8px',
+              textAlign: 'center',
+              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            }}>
+              Create New Password
+            </h2>
+
+            <p style={{
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontSize: '16px',
+              textAlign: 'center',
+              marginBottom: '32px',
+              lineHeight: '1.5'
+            }}>
+              Enter your new password for {forgotPasswordEmail}
+            </p>
+
+            <form onSubmit={handlePasswordReset} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="password"
+                  placeholder="New Password"
+                  value={newPassword}
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                    setError('');
+                    setMessage('');
+                  }}
+                  required
+                  minLength={6}
+                  style={{
+                    width: '100%',
+                    padding: '16px 20px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: '#ffffff',
+                    fontSize: '16px',
+                    outline: 'none',
+                    transition: 'all 0.2s ease',
+                    fontFamily: 'inherit',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                    e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                    e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                  }}
+                />
+              </div>
+
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="password"
+                  placeholder="Confirm New Password"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value);
+                    setError('');
+                    setMessage('');
+                  }}
+                  required
+                  minLength={6}
+                  style={{
+                    width: '100%',
+                    padding: '16px 20px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: '#ffffff',
+                    fontSize: '16px',
+                    outline: 'none',
+                    transition: 'all 0.2s ease',
+                    fontFamily: 'inherit',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                    e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                    e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                  }}
+                />
+              </div>
+
+              {(error || message) && (
+                <div style={{
+                  padding: '12px 16px',
+                  borderRadius: '8px',
+                  background: message ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                  border: message ? '1px solid rgba(34, 197, 94, 0.2)' : '1px solid rgba(239, 68, 68, 0.2)',
+                  color: message ? '#86efac' : '#fca5a5',
+                  fontSize: '14px',
+                  textAlign: 'center'
+                }}>
+                  {error || message}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '16px 24px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: loading ? 'rgba(100, 100, 100, 0.5)' : 'linear-gradient(135deg, #4169E1 0%, #87CEEB 100%)',
+                  color: '#ffffff',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease',
+                  fontFamily: 'inherit',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  boxShadow: loading ? 'none' : '0 4px 14px 0 rgba(65, 105, 225, 0.39)'
+                }}
+                onMouseOver={(e) => {
+                  if (!loading) {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 8px 25px 0 rgba(65, 105, 225, 0.5)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!loading) {
+                    e.target.style.transform = 'translateY(0px)';
+                    e.target.style.boxShadow = '0 4px 14px 0 rgba(65, 105, 225, 0.39)';
+                  }
+                }}
+              >
+                {loading ? 'Updating...' : 'Update Password'}
+              </button>
+            </form>
+
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginTop: '24px',
+              fontSize: '14px'
+            }}>
+              <button
+                onClick={() => {
+                  setShowPasswordReset(false);
+                  setShowForgotPassword(true);
+                  setError('');
+                  setMessage('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  transition: 'color 0.2s ease'
+                }}
+                onMouseOver={(e) => e.target.style.color = '#ffffff'}
+                onMouseOut={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.6)'}
+              >
+                Back to Email Verification
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Forgot Password Form (Step 1)
+    if (showForgotPassword) {
+      return (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.95)',
+          backdropFilter: 'blur(20px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(15, 15, 35, 0.95) 0%, rgba(25, 25, 55, 0.95) 100%)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: '24px',
+            padding: '48px',
+            maxWidth: '420px',
+            width: '100%',
+            position: 'relative',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+          }}>
+            <button
+              onClick={() => {
+                setShowForgotPassword(false);
+                setError('');
+                setMessage('');
+                setForgotPasswordEmail('');
+              }}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: 'none',
+                border: 'none',
+                color: 'rgba(255, 255, 255, 0.6)',
+                fontSize: '24px',
+                cursor: 'pointer',
+                transition: 'color 0.2s ease'
+              }}
+              onMouseOver={(e) => e.target.style.color = '#ffffff'}
+              onMouseOut={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.6)'}
+            >
+              ×
+            </button>
+
+            <h2 style={{
+              color: '#ffffff',
+              fontSize: '32px',
+              fontWeight: '700',
+              marginBottom: '8px',
+              textAlign: 'center',
+              fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+            }}>
+              Verify Your Account
+            </h2>
+
+            <p style={{
+              color: 'rgba(255, 255, 255, 0.6)',
+              fontSize: '16px',
+              textAlign: 'center',
+              marginBottom: '32px',
+              lineHeight: '1.5'
+            }}>
+              Enter your email address to verify your account and reset your password
+            </p>
+
+            <form onSubmit={handleForgotPassword} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="email"
+                  placeholder="Email Address"
+                  value={forgotPasswordEmail}
+                  onChange={(e) => {
+                    setForgotPasswordEmail(e.target.value);
+                    setError('');
+                    setMessage('');
+                  }}
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '16px 20px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    color: '#ffffff',
+                    fontSize: '16px',
+                    outline: 'none',
+                    transition: 'all 0.2s ease',
+                    fontFamily: 'inherit',
+                    boxSizing: 'border-box'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                    e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                    e.target.style.background = 'rgba(255, 255, 255, 0.05)';
+                  }}
+                />
+              </div>
+
+              {(error || message) && (
+                <div style={{
+                  padding: '12px 16px',
+                  borderRadius: '8px',
+                  background: message ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                  border: message ? '1px solid rgba(34, 197, 94, 0.2)' : '1px solid rgba(239, 68, 68, 0.2)',
+                  color: message ? '#86efac' : '#fca5a5',
+                  fontSize: '14px',
+                  textAlign: 'center'
+                }}>
+                  {error || message}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '16px 24px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: loading ? 'rgba(100, 100, 100, 0.5)' : 'linear-gradient(135deg, #4169E1 0%, #87CEEB 100%)',
+                  color: '#ffffff',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s ease',
+                  fontFamily: 'inherit',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  boxShadow: loading ? 'none' : '0 4px 14px 0 rgba(65, 105, 225, 0.39)'
+                }}
+                onMouseOver={(e) => {
+                  if (!loading) {
+                    e.target.style.transform = 'translateY(-2px)';
+                    e.target.style.boxShadow = '0 8px 25px 0 rgba(65, 105, 225, 0.5)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!loading) {
+                    e.target.style.transform = 'translateY(0px)';
+                    e.target.style.boxShadow = '0 4px 14px 0 rgba(65, 105, 225, 0.39)';
+                  }
+                }}
+              >
+                {loading ? 'Verifying...' : 'Verify Account'}
+              </button>
+            </form>
+
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginTop: '24px',
+              fontSize: '14px'
+            }}>
+              <button
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setError('');
+                  setMessage('');
+                  setForgotPasswordEmail('');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  transition: 'color 0.2s ease'
+                }}
+                onMouseOver={(e) => e.target.style.color = '#ffffff'}
+                onMouseOut={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.6)'}
+              >
+                Back to Login
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Regular Login/Register Form
     return (
       <div style={{
         position: 'fixed',
@@ -236,6 +755,20 @@ export default function HomePage({ onLogin }) {
               </div>
             )}
 
+            {message && (
+              <div style={{
+                padding: '12px 16px',
+                borderRadius: '8px',
+                background: 'rgba(34, 197, 94, 0.1)',
+                border: '1px solid rgba(34, 197, 94, 0.2)',
+                color: '#86efac',
+                fontSize: '14px',
+                textAlign: 'center'
+              }}>
+                {message}
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={loading}
@@ -272,6 +805,37 @@ export default function HomePage({ onLogin }) {
             </button>
           </form>
 
+          {/* Forgot Password Link - Only show for login, not registration */}
+          {!isRegistering && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginTop: '16px',
+              fontSize: '14px'
+            }}>
+              <button
+                onClick={() => {
+                  setShowForgotPassword(true);
+                  setError('');
+                  setMessage('');
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  transition: 'color 0.2s ease',
+                  textDecoration: 'underline'
+                }}
+                onMouseOver={(e) => e.target.style.color = '#ffffff'}
+                onMouseOut={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.6)'}
+              >
+                Forgot Password?
+              </button>
+            </div>
+          )}
+
           <div style={{
             display: 'flex',
             justifyContent: 'center',
@@ -282,6 +846,7 @@ export default function HomePage({ onLogin }) {
               onClick={() => {
                 setIsRegistering(!isRegistering);
                 setError('');
+                setMessage('');
                 setFormData({ name: '', email: '', password: '' });
               }}
               style={{

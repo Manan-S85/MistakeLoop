@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import InterviewDiagnostic from "./pages/InterviewDiagnostic";
+import ResetPassword from "./pages/ResetPassword";
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -45,9 +47,25 @@ export default function App() {
     );
   }
 
-  if (!user) {
-    return <HomePage onLogin={handleLogin} />;
-  }
-
-  return <InterviewDiagnostic user={user} onLogout={handleLogout} />;
+  return (
+    <Router>
+      <Routes>
+        <Route 
+          path="/reset-password" 
+          element={<ResetPassword />} 
+        />
+        <Route 
+          path="/" 
+          element={
+            !user ? (
+              <HomePage onLogin={handleLogin} />
+            ) : (
+              <InterviewDiagnostic user={user} onLogout={handleLogout} />
+            )
+          } 
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
+  );
 }

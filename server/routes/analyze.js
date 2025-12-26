@@ -1,7 +1,7 @@
 import express from "express";
 import { callLLM } from "../utils/openrouter.js";
 import { buildPrompt } from "../brain/promptBuilder.js";
-import { validateLLMResponse } from "../brain/validator.js";
+import { validateLLMResponse, generateFallbackResponse } from "../brain/validator.js";
 import Reflection from "../models/Reflection.js";
 import User from "../models/User.js";
 
@@ -11,32 +11,50 @@ const router = express.Router();
 
 router.post("/", async (req, res) => {
   try {
-    const { reflection, email, pastMistakes } = req.body;
+    const { reflection, email, pastMistakes, userContext } = req.body;
 
     if (!reflection) {
       return res.status(400).json({ error: "Reflection text is required" });
     }
 
     console.log("Starting analysis for reflection:", reflection.substring(0, 100) + "...");
-
-    // Call LLM first (core functionality)
-    const prompt = buildPrompt(reflection, pastMistakes);
-    console.log("Built prompt, calling LLM...");
-    
-    const llmOutput = await callLLM(prompt);
-    console.log("Raw LLM response:", llmOutput);
-    
-    const validated = validateLLMResponse(llmOutput);
-
-    if (!validated) {
-      console.error("LLM validation failed for response:", llmOutput);
-      return res.status(500).json({ 
-        error: "Invalid LLM response - please try again",
-        debug: process.env.NODE_ENV === 'development' ? llmOutput : undefined
-      });
+    if (userContext) {
+      console.log("User context provided:", userContext);
     }
 
-    console.log("Validation successful:", validated);
+    let validated = null;
+    
+    try {
+      // Try LLM first (core functionality)
+      const prompt = buildPrompt(reflection, pastMistakes, userContext);
+      console.log("Built prompt with context, calling LLM...");
+      
+      const llmOutput = await callLLM(prompt);
+      console.log("Raw LLM response:", llmOutput);
+      
+      validated = validateLLMResponse(llmOutput);
+      
+      if (validated) {
+        console.log("LLM validation successful:", validated);
+      } else {
+        console.warn("LLM validation failed, falling back to structured response");
+        throw new Error("LLM validation failed");
+      }
+    } catch (llmError) {
+      console.error("LLM error:", llmError.message);
+      console.log("Using fallback response system...");
+      
+      // Use fallback response
+      validated = generateFallbackResponse(userContext, reflection);
+      console.log("Fallback response generated:", validated);
+    }
+
+    if (!validated) {
+      console.error("Both LLM and fallback failed");
+      return res.status(500).json({ 
+        error: "Analysis system temporarily unavailable - please try again later"
+      });
+    }
 
     // Try to save to database if available and email provided
     let savedReflection = null;
@@ -48,14 +66,15 @@ router.post("/", async (req, res) => {
           user = await User.create({ email });
         }
 
-        // Save reflection
+        // Save reflection with user context
         savedReflection = await Reflection.create({
           userId: user._id,
           rawText: reflection,
-          mistakes: validated.suggestions || [], // Map to new field names
+          mistakes: validated.suggestions || [],
           category: validated.category,
-          severity: validated.confidence / 100, // Convert back to 0-1 scale
-          recommendedActions: validated.actionItems || []
+          severity: validated.confidence / 100,
+          recommendedActions: validated.actionItems || [],
+          userContext: userContext || {} // Save user context
         });
       } catch (dbError) {
         console.error("Database error:", dbError.message);
