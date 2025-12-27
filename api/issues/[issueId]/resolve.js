@@ -39,6 +39,10 @@ export default async function handler(req, res) {
     return;
   }
 
+  if (req.method !== 'PATCH') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   try {
     await connectDB();
 
@@ -51,15 +55,23 @@ export default async function handler(req, res) {
     const token = authHeader.substring(7);
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (req.method === 'GET') {
-      const issues = await Issue.find({ userId: decoded.userId }).sort({ createdAt: -1 });
-      return res.status(200).json(issues);
+    // Get issueId from the URL path
+    const { issueId } = req.query;
+
+    const issue = await Issue.findOneAndUpdate(
+      { _id: issueId, userId: decoded.userId },
+      { status: 'resolved', resolvedAt: new Date() },
+      { new: true }
+    );
+
+    if (!issue) {
+      return res.status(404).json({ error: 'Issue not found' });
     }
 
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(200).json(issue);
     
   } catch (error) {
-    console.error('Issues API error:', error);
+    console.error('Resolve issue API error:', error);
     if (error.name === 'JsonWebTokenError') {
       return res.status(401).json({ error: 'Invalid token' });
     }

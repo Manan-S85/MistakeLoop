@@ -1,6 +1,29 @@
-import { connectDB } from "../server/utils/db.js";
+import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-import Reflection from "../server/models/Reflection.js";
+
+// Simple Reflection schema
+const ReflectionSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  reflection: String,
+  analysis: Object
+}, { timestamps: true });
+
+const Reflection = mongoose.models.Reflection || mongoose.model('Reflection', ReflectionSchema);
+
+// Database connection
+async function connectDB() {
+  if (mongoose.connections[0].readyState) {
+    return;
+  }
+  
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('MongoDB connected');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error;
+  }
+}
 
 export default async function handler(req, res) {
   // Enable CORS
