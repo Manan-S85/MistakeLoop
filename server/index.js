@@ -38,6 +38,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// Ensure database connection for serverless
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    res.status(500).json({ error: 'Database connection failed' });
+  }
+});
+
 // Routes
 app.use("/api/analyze", analyzeRoute);
 app.use("/api/auth", authRoute);
@@ -61,25 +72,30 @@ app.use((error, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-// Start server
-const startServer = async () => {
-  try {
-    await connectDB();
-    
-    const server = app.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server running on port ${PORT}`);
-      console.log(`📡 Health check: http://localhost:${PORT}`);
-      console.log(`API endpoint: http://localhost:${PORT}/api/analyze`);
-    });
-    
-    server.on('error', (error) => {
-      console.error('Server error:', error.message);
-    });
-    
-  } catch (error) {
-    console.error('Failed to start server:', error.message);
-    process.exit(1);
-  }
-};
+// Export for Vercel serverless
+export default app;
 
-startServer();
+// Start server (only for local development)
+if (process.env.NODE_ENV !== 'production') {
+  const startServer = async () => {
+    try {
+      await connectDB();
+      
+      const server = app.listen(PORT, '0.0.0.0', () => {
+        console.log(`Server running on port ${PORT}`);
+        console.log(`📡 Health check: http://localhost:${PORT}`);
+        console.log(`API endpoint: http://localhost:${PORT}/api/analyze`);
+      });
+      
+      server.on('error', (error) => {
+        console.error('Server error:', error.message);
+      });
+      
+    } catch (error) {
+      console.error('Failed to start server:', error.message);
+      process.exit(1);
+    }
+  };
+
+  startServer();
+}
