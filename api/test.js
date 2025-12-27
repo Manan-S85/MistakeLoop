@@ -1,15 +1,16 @@
-module.exports = (req, res) => {
+export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
   if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+    res.status(200).end();
+    return;
   }
   
-  return res.status(200).json({ 
-    message: 'API working perfectly',
-    timestamp: new Date().toISOString(),
-    method: req.method
+  res.status(200).json({ 
+    status: 'working',
+    message: 'Test endpoint is working',
+    timestamp: new Date().toISOString()
   });
-};
+}
