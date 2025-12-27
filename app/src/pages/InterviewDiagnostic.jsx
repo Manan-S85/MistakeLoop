@@ -300,7 +300,7 @@ export default function InterviewDiagnostic({ user, onLogout }) {
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
       
-      const response = await fetch("http://localhost:5000/api/analyze", {
+      const response = await fetch("/api/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
