@@ -1,7 +1,30 @@
-import { connectDB } from "../../server/utils/db.js";
-import User from "../../server/models/User.js";
+import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+
+// Simple User schema
+const UserSchema = new mongoose.Schema({
+  name: String,
+  email: { type: String, unique: true },
+  password: String
+}, { timestamps: true });
+
+const User = mongoose.models.User || mongoose.model('User', UserSchema);
+
+// Database connection
+async function connectDB() {
+  if (mongoose.connections[0].readyState) {
+    return;
+  }
+  
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('MongoDB connected');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error;
+  }
+}
 
 export default async function handler(req, res) {
   // Enable CORS
