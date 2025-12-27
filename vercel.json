@@ -21,8 +21,12 @@
       "dest": "/server/index.js"
     },
     {
-      "src": "/(.*)",
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
       "dest": "/app/dist/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/app/dist/index.html"
     }
   ]
 }
