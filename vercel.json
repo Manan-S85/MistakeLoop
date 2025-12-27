@@ -7,15 +7,5 @@
         "distDir": "dist"
       }
     }
-  ],
-  "routes": [
-    {
-      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json))",
-      "dest": "/app/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/app/index.html"
-    }
   ]
 }

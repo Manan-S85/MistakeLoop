@@ -7,6 +7,11 @@
     "dev": "concurrently \"cd app && npm run dev\" \"cd server && npm run dev\"",
     "start": "cd server && npm start"
   },
+  "dependencies": {
+    "mongoose": "^8.0.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
+  },
   "devDependencies": {
     "autoprefixer": "^10.4.23",
     "postcss": "^8.5.6",
