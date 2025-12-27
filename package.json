@@ -1,4 +1,12 @@
 {
+  "name": "mistaker",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "cd app && npm install && npm run build",
+    "dev": "concurrently \"cd app && npm run dev\" \"cd server && npm run dev\"",
+    "start": "cd server && npm start"
+  },
   "devDependencies": {
     "autoprefixer": "^10.4.23",
     "postcss": "^8.5.6",
