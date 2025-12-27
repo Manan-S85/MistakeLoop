@@ -1,7 +1,4 @@
 {
-  "version": 2,
-  "name": "mistaker",
-  "outputDirectory": "app/dist",
   "builds": [
     {
       "src": "app/package.json",
@@ -15,18 +12,14 @@
       "use": "@vercel/node"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/server/index.js"
+      "source": "/api/(.*)",
+      "destination": "/server/index.js"
     },
     {
-      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
-      "dest": "/app/dist/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/app/dist/index.html"
+      "source": "/(.*)",
+      "destination": "/app/index.html"
     }
   ]
 }
