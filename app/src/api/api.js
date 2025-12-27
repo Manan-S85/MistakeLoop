@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:5000";
+const BASE_URL = import.meta.env.PROD ? "" : "http://localhost:5000";
 
 export async function login(email, password) {
   const res = await fetch(`${BASE_URL}/api/auth/login`, {

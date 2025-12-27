@@ -20,7 +20,9 @@ console.log("Starting Mistaker Interview Diagnostic Server...");
 
 // Middlewares
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:5500"],
+  origin: process.env.NODE_ENV === 'production' 
+    ? true 
+    : ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:5500"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
