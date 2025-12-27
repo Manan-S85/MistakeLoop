@@ -1,6 +1,7 @@
 {
   "version": 2,
   "name": "mistaker",
+  "outputDirectory": "app/dist",
   "builds": [
     {
       "src": "app/package.json",
